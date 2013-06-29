@@ -431,7 +431,8 @@ function cw_nextGeneration() {
     while(parent2 == parent1) {
       parent2 = cw_getParents();
     }
-    newborn = cw_makeChild(cw_carGeneration[parent1],cw_carGeneration[parent2]);
+    newborn = cw_makeChild(cw_carScores[parent1].car_def,
+                           cw_carScores[parent2].car_def);
     newborn = cw_mutate(newborn);
     newborn.is_elite = false;
     newborn.index = k;
