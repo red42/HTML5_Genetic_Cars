@@ -554,9 +554,11 @@ function cw_mutate(car_def) {
   if(Math.random() < gen_mutation)
     car_def.wheel_radius2 = cw_mutate1(
         car_def.wheel_radius2, wheelMinRadius, wheelMaxRadius);
-  if(Math.random() < gen_mutation)
+  var wheel_m_rate = mutation_range < gen_mutation
+        ? mutation_range : gen_mutation;
+  if(Math.random() < wheel_m_rate)
     car_def.wheel_vertex1 = Math.floor(Math.random()*8)%8;
-  if(Math.random() < gen_mutation)
+  if(Math.random() < wheel_m_rate)
       car_def.wheel_vertex2 = Math.floor(Math.random()*8)%8;
   if(Math.random() < gen_mutation)
     car_def.wheel_density1 = cw_mutate1(
