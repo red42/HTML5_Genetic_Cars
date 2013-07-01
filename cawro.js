@@ -462,17 +462,10 @@ function cw_getChampions() {
 }
 
 function cw_getParents() {
-  var parentIndex = -1;
-  for(var k = 0; k < generationSize; k++) {
-    if(Math.random() <= gen_parentality) {
-      parentIndex = k;
-      break;
-    }
-  }
-  if(parentIndex == -1) {
-    parentIndex = Math.round(Math.random()*(generationSize-1));
-  }
-  return parentIndex;
+    var r = Math.random();
+    if (r == 0)
+        return 0;
+    return Math.floor(-Math.log(r) * generationSize) % generationSize;
 }
 
 function cw_makeChild(car_def1, car_def2) {
