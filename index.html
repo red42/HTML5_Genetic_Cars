@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>HTML5 Genetic Algorithm 2D Car Thingy - Chrome recommended</title>
+    <style>
+      #mainbox {
+        width: 800px;
+        height: 400px;
+        border: 1px solid red;
+      }
+
+      #div {
+        width: 800px;
+        height: 400px;
+        border: 1px solid black;
+      }
+
+      #data {
+        position: absolute;
+        left: 810px;
+        top: 20px;
+        width: 300px;
+        height: 400px;
+      }
+
+      #graphholder {
+        position: relative;
+      }
+
+      #graphholder .scale {
+        position: absolute;
+        left: 405px;
+        font-size: 9px;
+      }
+
+      #s0 { top: 200px; }
+      #s25 { top: 150px; }
+      #s50 { top: 100px; }
+      #s75 { top: 50px; }
+      #s100 { top: 0px; }
+
+      #graphcanvas {
+        border: 1px solid black;
+      }
+
+      #topscoreholder {
+        width: 300px;
+        height: 400px;
+        position: absolute;
+        top: 420px;
+        left: 445px;
+        font-size: 11px;
+      }
+
+      #minimap {
+      }
+
+      #minimapholder {
+        position: relative;
+        border: 1px solid black;
+        width: 800px;
+        height: 200px;
+        overflow: hidden;
+      }
+
+      .minimapmarker {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 1px;
+        height: 200px;
+        z-index: 5;
+        border-left: 1px solid #444;
+        font-size: 9px;
+        padding-left: 2px;
+      }
+
+      .silverdot {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 1px;
+        height: 200px;
+        z-index: 4;
+      }
+
+      #minimapfog {
+        width: 798px;
+        height: 198px;
+        position: absolute;
+        top: 1px;
+        right: 1px;
+        z-index: 2;
+        background-color: white;
+      }
+
+      #minimapcamera {
+        position: absolute;
+        top: 0px;
+        left: 1px;
+        height: 199px;
+        width: 50px;
+        z-index: 3;
+        border: 1px dashed #888;
+      }
+
+      .healthbar {
+        cursor: pointer;
+        position: relative;
+        border: 1px solid #444;
+        width: 100px;
+        height: 15px;
+        padding: 2px;
+        margin-left: 23px;
+      }
+
+        .healthbar .health {
+          height: 100%;
+          width: 100%;
+          background-color: red;
+        }
+
+        .healthbar .healthtext {
+          position: absolute;
+          top: 0px;
+          left: -20px;
+        }
+
+    </style>
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-25432661-3']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+  </head>
+  <body>
+    <canvas id="mainbox" width="800" height="400"></canvas>
+    <div id="graphholder">
+      <canvas id="graphcanvas" width="400" height="200"></canvas>
+      <div class="scale" id="s100">200</div>
+      <div class="scale" id="s75">150</div>
+      <div class="scale" id="s50">100</div>
+      <div class="scale" id="s25">50</div>
+      <div class="scale" id="s0">0</div>
+    </div>
+    <div id="minimapholder">
+      <!--<img src="reddot.png" id="minimapmarker" />-->
+      <div id="minimapfog"></div>
+      <canvas id="minimap" width="800" height="200"></canvas>
+      <div id="minimapcamera"></div>
+    </div>
+    <div id="topscoreholder">
+    <input type="button" value="View top replay" onclick="cw_toggleGhostReplay(this)" /><br />
+      <div id="topscores"></div>
+    </div>
+    <div id="debug"></div>
+    <div id="data">
+<form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank">
+<input type="hidden" name="cmd" value="_s-xclick">
+<input type="hidden" name="hosted_button_id" value="X8VB9NDYWQDPE">
+<input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+<img alt="" border="0" src="https://www.paypalobjects.com/pt_BR/i/scr/pixel.gif" width="1" height="1">
+</form>
+<script>
+var CoinWidget_Config = {
+	address : '1Dm9BtjZcAB7AGuituyAvDUeLndHqZGmRH'
+};
+</script>
+<script src="http://c.coinwidget.com/widget.js"></script>
+<br />
+      <input type="button" value="Surprise!" onclick="toggleDisplay()" />
+      <input type="button" value="New Population" onclick="cw_resetPopulation()" />
+      <div>
+        Create new world with seed:
+        <input type="text" value="Enter any string" id="newseed" />
+        <input type="button" value="Go!" onclick="cw_confirmResetWorld()" />
+      </div>
+      <div>
+        Mutation rate:
+        <select id="mutationrate" onchange="cw_setMutation(this.options[this.selectedIndex].value)">
+          <option value="0">0%</option>
+          <option value="0.01">1%</option>
+          <option value="0.02">2%</option>
+          <option value="0.03">3%</option>
+          <option value="0.04">4%</option>
+          <option value="0.05" selected="selected">5%</option>
+          <option value="0.1">10%</option>
+          <option value="0.2">20%</option>
+          <option value="0.3">30%</option>
+          <option value="0.4">40%</option>
+          <option value="0.5">50%</option>
+          <option value="0.75">75%</option>
+          <option value="1.0">100%</option>
+        </select>
+      </div>
+      <div>
+        Elite clones:
+        <select id="elitesize" onchange="cw_setEliteSize(this.options[this.selectedIndex].value)">
+          <option value="0">0</option>
+          <option value="1" selected="selected">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+          <option value="9">9</option>
+          <option value="10">10</option>
+        </select>
+      </div>
+      <div id="generation"></div>
+      <div id="population"></div>
+      <div id="distancemeter"></div>
+      <input type="button" value="Watch Leader" onclick="cw_setCameraTarget(-1)" />
+      <div id="health"></div>
+      <div id="cars"></div>
+    </div>
+    <div id="explanation">
+      <h3>Controls</h3>
+      Suprise: Toggles drawing, makes the simulation faster.<br />
+      New Population: Keeps the generated track and restarts the whole car population.<br />
+      Create new world with seed: The same seed always creates the same track, so you can agree on a seed with your friends and compete. :)<br />
+      Mutation rate: The chance that each gene in each individual will mutate to a random value when a new generation is born.<br />
+      Elite clones: The top n cars that will be copied over to the next generation.<br />
+      View top replay: Pause the current simulation and show the top performing car. Click a second time to resume simulation.
+      <h3>Graph</h3>
+      Red: Top score in each generation.<br />
+      Green: Average of the top 10 cars in each generation.<br />
+      Blue: Average of the entire generation.
+      <h3>But what is it?</h3>
+      The program uses a simple genetic algorithm to evolve random two-wheeled shapes into cars over generations. Loosely based on <a href="http://boxcar2d.com/">BoxCar2D</a>, but
+      written from scratch, only using the same physics engine (<a href="http://box2d.org/">box2d</a>).<br />
+      seedrandom.js written by <a href="http://davidbau.com/">David Bau</a>. (thanks!)
+      <h3>Genome</h3>
+      The genome consists of:<br />
+      - Shape: (8 genes, 1 per vertex)<br />
+      - Wheel size: (2 genes, 1 per wheel)<br />
+      - Wheel position: (2 genes, 1 per wheel)<br />
+      - Wheel density: (2 genes, 1 per wheel) darker wheels mean denser wheels
+      <h3>Blurb</h3>
+      This is not as deterministic as it should be, so your best car may not perform as well as it once did. The terrain gets more complex with distance.<br />
+      I'm not in the mood to deal with checking if all scripts have loaded before running, so refresh the page if things seem whack.<br />
+      Written by <a href="http://rednuht.org">this guy</a>.<br />
+      <a href="mailto:rednuht@rednuht.org">Send me food</a>.
+    </div>
+    <div name="minimapmarker" class="minimapmarker"></div>
+    <div name="healthbar" class="healthbar" onclick="cw_setCameraTarget(this.car_index)">
+      <div name="health" class="health"></div>
+      <div name="healthtext" class="healthtext"></div>
+    </div>
+  </body>
+    <script src="seedrandom.js"></script>
+    <script src="box2d.js"></script>
+    <script src="ghost.js"></script>
+    <script src="cawro.js"></script>
+</html>
