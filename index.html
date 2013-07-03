@@ -202,6 +202,24 @@ var CoinWidget_Config = {
         </select>
       </div>
       <div>
+        Mutation size:
+        <select id="mutationsize" onchange="cw_setMutationRange(this.options[this.selectedIndex].value)">
+          <option value="0">0%</option>
+          <option value="0.01">1%</option>
+          <option value="0.02">2%</option>
+          <option value="0.03">3%</option>
+          <option value="0.04">4%</option>
+          <option value="0.05">5%</option>
+          <option value="0.1">10%</option>
+          <option value="0.2">20%</option>
+          <option value="0.3">30%</option>
+          <option value="0.4">40%</option>
+          <option value="0.5">50%</option>
+          <option value="0.75">75%</option>
+          <option value="1.0" selected="selected">100%</option>
+        </select>
+      </div>
+      <div>
         Elite clones:
         <select id="elitesize" onchange="cw_setEliteSize(this.options[this.selectedIndex].value)">
           <option value="0">0</option>

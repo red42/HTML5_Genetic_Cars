@@ -43,6 +43,7 @@ var cw_graphAverage = new Array();
 var gen_champions = 1;
 var gen_parentality = 0.2;
 var gen_mutation = 0.05;
+var mutation_range = 1;
 var gen_counter = 0;
 var nAttributes = 14; // change this when genome changes
 
@@ -430,7 +431,8 @@ function cw_nextGeneration() {
     while(parent2 == parent1) {
       parent2 = cw_getParents();
     }
-    newborn = cw_makeChild(cw_carGeneration[parent1],cw_carGeneration[parent2]);
+    newborn = cw_makeChild(cw_carScores[parent1].car_def,
+                           cw_carScores[parent2].car_def);
     newborn = cw_mutate(newborn);
     newborn.is_elite = false;
     newborn.index = k;
@@ -460,17 +462,10 @@ function cw_getChampions() {
 }
 
 function cw_getParents() {
-  var parentIndex = -1;
-  for(var k = 0; k < generationSize; k++) {
-    if(Math.random() <= gen_parentality) {
-      parentIndex = k;
-      break;
-    }
-  }
-  if(parentIndex == -1) {
-    parentIndex = Math.round(Math.random()*(generationSize-1));
-  }
-  return parentIndex;
+    var r = Math.random();
+    if (r == 0)
+        return 0;
+    return Math.floor(-Math.log(r) * generationSize) % generationSize;
 }
 
 function cw_makeChild(car_def1, car_def2) {
@@ -519,36 +514,62 @@ function cw_makeChild(car_def1, car_def2) {
   return newCarDef;
 }
 
+
+function cw_mutate1(old, min, range) {
+    var span = range * mutation_range;
+    var base = old - 0.5 * span;
+    if (base < min)
+        base = min;
+    if (base > min + (range - span))
+        base = min + (range - span);
+    return base + span * Math.random();
+}
+
+function cw_mutatev(car_def, n, xfact, yfact)
+{
+    if (Math.random() >= gen_mutation)
+        return;
+
+    var v = car_def.vertex_list[n];
+    var x = 0;
+    var y = 0;
+    if (xfact != 0)
+        x = xfact * cw_mutate1(xfact * v.x, chassisMinAxis, chassisMaxAxis);
+    if (yfact != 0)
+        y = yfact * cw_mutate1(yfact * v.y, chassisMinAxis, chassisMaxAxis);
+    car_def.vertex_list.splice(n, 1, new b2Vec2(x, y));
+}
+
+
 function cw_mutate(car_def) {
   if(Math.random() < gen_mutation)
-    car_def.wheel_radius1 = Math.random()*wheelMaxRadius+wheelMinRadius;
+    car_def.wheel_radius1 = cw_mutate1(
+        car_def.wheel_radius1, wheelMinRadius, wheelMaxRadius);
   if(Math.random() < gen_mutation)
-    car_def.wheel_radius2 = Math.random()*wheelMaxRadius+wheelMinRadius;
-  if(Math.random() < gen_mutation)
+    car_def.wheel_radius2 = cw_mutate1(
+        car_def.wheel_radius2, wheelMinRadius, wheelMaxRadius);
+  var wheel_m_rate = mutation_range < gen_mutation
+        ? mutation_range : gen_mutation;
+  if(Math.random() < wheel_m_rate)
     car_def.wheel_vertex1 = Math.floor(Math.random()*8)%8;
-  if(Math.random() < gen_mutation)
+  if(Math.random() < wheel_m_rate)
       car_def.wheel_vertex2 = Math.floor(Math.random()*8)%8;
   if(Math.random() < gen_mutation)
-    car_def.wheel_density1 = Math.random()*wheelMaxDensity+wheelMinDensity;
+    car_def.wheel_density1 = cw_mutate1(
+        car_def.wheel_density1, wheelMinDensity, wheelMaxDensity);
   if(Math.random() < gen_mutation)
-    car_def.wheel_density2 = Math.random()*wheelMaxDensity+wheelMinDensity;
+    car_def.wheel_density2 = cw_mutate1(
+        car_def.wheel_density2, wheelMinDensity, wheelMaxDensity);
 
-  if(Math.random() < gen_mutation)
-      car_def.vertex_list.splice(0,1,new b2Vec2(Math.random()*chassisMaxAxis + chassisMinAxis,0));
-  if(Math.random() < gen_mutation)
-      car_def.vertex_list.splice(1,1,new b2Vec2(Math.random()*chassisMaxAxis + chassisMinAxis,Math.random()*chassisMaxAxis + chassisMinAxis));
-  if(Math.random() < gen_mutation)
-      car_def.vertex_list.splice(2,1,new b2Vec2(0,Math.random()*chassisMaxAxis + chassisMinAxis));
-  if(Math.random() < gen_mutation)
-      car_def.vertex_list.splice(3,1,new b2Vec2(-Math.random()*chassisMaxAxis - chassisMinAxis,Math.random()*chassisMaxAxis + chassisMinAxis));
-  if(Math.random() < gen_mutation)
-      car_def.vertex_list.splice(4,1,new b2Vec2(-Math.random()*chassisMaxAxis - chassisMinAxis,0));
-  if(Math.random() < gen_mutation)
-      car_def.vertex_list.splice(5,1,new b2Vec2(-Math.random()*chassisMaxAxis - chassisMinAxis,-Math.random()*chassisMaxAxis - chassisMinAxis));
-  if(Math.random() < gen_mutation)
-      car_def.vertex_list.splice(6,1,new b2Vec2(0,-Math.random()*chassisMaxAxis - chassisMinAxis));
-  if(Math.random() < gen_mutation)
-      car_def.vertex_list.splice(7,1,new b2Vec2(Math.random()*chassisMaxAxis + chassisMinAxis,-Math.random()*chassisMaxAxis - chassisMinAxis));
+  cw_mutatev(car_def, 0, 1, 0);
+  cw_mutatev(car_def, 1, 1, 1);
+  cw_mutatev(car_def, 2, 0, 1);
+  cw_mutatev(car_def, 3, -1, 1);
+  cw_mutatev(car_def, 4, -1, 0);
+  cw_mutatev(car_def, 5, -1, -1);
+  cw_mutatev(car_def, 6, 0, -1);
+  cw_mutatev(car_def, 7, 1, -1);
+
   return car_def;
 }
 
@@ -568,6 +589,10 @@ function cw_chooseParent(curparent, attributeIndex) {
 
 function cw_setMutation(mutation) {
   gen_mutation = parseFloat(mutation);
+}
+
+function cw_setMutationRange(range) {
+  mutation_range = parseFloat(range);
 }
 
 function cw_setEliteSize(clones) {
