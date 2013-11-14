@@ -1,4 +1,4 @@
-HTML5_Genetic_Cars
+HTML5 Genetic Cars
 ==================
 
 A genetic algorithm car evolver in HTML5 canvas.

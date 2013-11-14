@@ -7,12 +7,12 @@ function cw_createFloor() {
   cw_floorTiles = new Array();
   Math.seedrandom(floorseed);
   for(var k = 0; k < maxFloorTiles; k++) {
-    if(!mutable_floor) {
+   if(!mutable_floor) {
       // keep old impossible tracks if not using mutable floors
       last_tile = cw_createFloorTile(tile_position, (Math.random()*3 - 1.5) * 1.5*k/maxFloorTiles);
     } else {
-      // MOD GIULIANO
-      last_tile = cw_createFloorTile(tile_position, (Math.random()*3 - 1.5) * 1*k/maxFloorTiles);
+      // if path is mutable over races, create smoother tracks
+      last_tile = cw_createFloorTile(tile_position, (Math.random()*3 - 1.5) * 1.2*k/maxFloorTiles);
     }
     cw_floorTiles.push(last_tile);
     last_fixture = last_tile.GetFixtureList();
