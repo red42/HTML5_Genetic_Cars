@@ -29,7 +29,6 @@ var minimapcanvas = document.getElementById("minimap");
 var minimapctx = minimapcanvas.getContext("2d");
 var minimapscale = 3;
 var minimapfogdistance = 0;
-//var minimarkerdistance = document.getElementById("minimapmarker").style;
 var fogdistance = document.getElementById("minimapfog").style;
 
 var generationSize = 20;
@@ -54,6 +53,8 @@ var world;
 
 var zoom = 70;
 
+var mutable_floor = false;
+
 var maxFloorTiles = 200;
 var cw_floorTiles = new Array();
 var last_drawn_tile = 0;
@@ -68,7 +69,6 @@ var wheelMaxRadius = 0.5;
 var wheelMinRadius = 0.2;
 var wheelMaxDensity = 100;
 var wheelMinDensity = 40;
-var wheelDensityRange = wheelMaxDensity + wheelMinDensity;
 
 var velocityIndex = 0;
 var deathSpeed = 0.1;
@@ -101,7 +101,6 @@ function debug(str, clear) {
 function showDistance(distance, height) {
   distanceMeter.innerHTML = "distance: "+distance+" meters<br />";
   distanceMeter.innerHTML += "height: "+height+" meters";
-  //minimarkerdistance.left = Math.round((distance + 5) * minimapscale) + "px";
   if(distance > minimapfogdistance) {
     fogdistance.width = 800 - Math.round(distance + 15) * minimapscale + "px";
     minimapfogdistance = distance;
@@ -152,6 +151,7 @@ cw_Car.prototype.__constructor = function(car_def) {
   var torque2 = carmass * -gravity.y / car_def.wheel_radius2;
 
   var joint_def = new b2RevoluteJointDef();
+
   var randvertex = this.chassis.vertex_list[car_def.wheel_vertex1];
   joint_def.localAnchorA.Set(randvertex.x, randvertex.y);
   joint_def.localAnchorB.Set(0, 0);
@@ -160,7 +160,6 @@ cw_Car.prototype.__constructor = function(car_def) {
   joint_def.enableMotor = true;
   joint_def.bodyA = this.chassis;
   joint_def.bodyB = this.wheel1;
-
   var joint = world.CreateJoint(joint_def);
 
   randvertex = this.chassis.vertex_list[car_def.wheel_vertex2];
@@ -171,7 +170,6 @@ cw_Car.prototype.__constructor = function(car_def) {
   joint_def.enableMotor = true;
   joint_def.bodyA = this.chassis;
   joint_def.bodyB = this.wheel2;
-
   var joint = world.CreateJoint(joint_def);
 
   this.replay = ghost_create_replay();
@@ -221,7 +219,7 @@ cw_Car.prototype.checkDeath = function() {
     }
     this.health--;
     if(this.health <= 0) {
-      this.healthBarText.innerHTML = "&#9760;";
+      this.healthBarText.innerHTML = "&#8708;";
       this.healthBar.width = "0";
       return true;
     }
@@ -314,63 +312,6 @@ function cw_createRandomCar() {
 /* === END Car ============================================================= */
 /* ========================================================================= */
 
-/* ========================================================================= */
-/* ==== Floor ============================================================== */
-
-function cw_createFloor() {
-  var last_tile = null;
-  var tile_position = new b2Vec2(-5,0);
-  cw_floorTiles = new Array();
-  Math.seedrandom(floorseed);
-  for(var k = 0; k < maxFloorTiles; k++) {
-    last_tile = cw_createFloorTile(tile_position, (Math.random()*3 - 1.5) * 1.5*k/maxFloorTiles);
-    cw_floorTiles.push(last_tile);
-    last_fixture = last_tile.GetFixtureList();
-    last_world_coords = last_tile.GetWorldPoint(last_fixture.GetShape().m_vertices[3]);
-    tile_position = last_world_coords;
-  }
-}
-
-
-
-function cw_createFloorTile(position, angle) {
-  body_def = new b2BodyDef();
-
-  body_def.position.Set(position.x, position.y);
-  var body = world.CreateBody(body_def);
-  fix_def = new b2FixtureDef();
-  fix_def.shape = new b2PolygonShape();
-  fix_def.friction = 0.5;
-
-  var coords = new Array();
-  coords.push(new b2Vec2(0,0));
-  coords.push(new b2Vec2(0,-groundPieceHeight));
-  coords.push(new b2Vec2(groundPieceWidth,-groundPieceHeight));
-  coords.push(new b2Vec2(groundPieceWidth,0));
-
-  var center = new b2Vec2(0,0);
-
-  var newcoords = cw_rotateFloorTile(coords, center, angle);
-
-  fix_def.shape.SetAsArray(newcoords);
-
-  body.CreateFixture(fix_def);
-  return body;
-}
-
-function cw_rotateFloorTile(coords, center, angle) {
-  var newcoords = new Array();
-  for(var k = 0; k < coords.length; k++) {
-    nc = new Object();
-    nc.x = Math.cos(angle)*(coords[k].x - center.x) - Math.sin(angle)*(coords[k].y - center.y) + center.x;
-    nc.y = Math.sin(angle)*(coords[k].x - center.x) + Math.cos(angle)*(coords[k].y - center.y) + center.y;
-    newcoords.push(nc);
-  }
-  return newcoords;
-}
-
-/* ==== END Floor ========================================================== */
-/* ========================================================================= */
 
 /* ========================================================================= */
 /* ==== Generation ========================================================= */
@@ -399,20 +340,6 @@ function cw_materializeGeneration() {
   }
 }
 
-// function cw_createNextCar() {
-//   car_health = max_car_health;
-//   document.getElementById("cars").innerHTML += "Car #"+(current_car_index+1)+": ";
-//   var newcar = new cw_Car(cw_carGeneration[current_car_index]);
-//   newcar.maxPosition = 0;
-//   newcar.maxPositiony = 0;
-//   newcar.minPositiony = 0;
-//   replay = ghost_create_replay();
-//   ghost_reset_ghost(ghost);
-//   ghost_add_replay_frame(replay, newcar);
-//   newcar.frames = 0;
-//   return newcar;
-// }
-
 function cw_nextGeneration() {
   var newGeneration = new Array();
   var newborn;
@@ -423,7 +350,6 @@ function cw_nextGeneration() {
     cw_carScores[k].car_def.is_elite = true;
     cw_carScores[k].car_def.index = k;
     newGeneration.push(cw_carScores[k].car_def);
-    //document.getElementById("bar"+k).src = "bluedot.png";
   }
   for(k = gen_champions; k < generationSize; k++) {
     var parent1 = cw_getParents();
@@ -436,7 +362,6 @@ function cw_nextGeneration() {
     newborn = cw_mutate(newborn);
     newborn.is_elite = false;
     newborn.index = k;
-    //document.getElementById("bar"+k).src = "reddot.png";
     newGeneration.push(newborn);
   }
   cw_carScores = new Array();
@@ -595,6 +520,10 @@ function cw_setMutationRange(range) {
   mutation_range = parseFloat(range);
 }
 
+function cw_setMutableFloor(choice) {
+  mutable_floor = (choice==1);
+}
+
 function cw_setEliteSize(clones) {
   gen_champions = parseInt(clones, 10);
 }
@@ -632,8 +561,6 @@ function cw_setCameraPosition() {
   } else {
     var cameraTargetPosition = leaderPosition;
   }
-//   var diff_y = camera_y - leaderPosition.y;
-//   var diff_x = camera_x - leaderPosition.x;
   var diff_y = camera_y - cameraTargetPosition.y;
   var diff_x = camera_x - cameraTargetPosition.x;
   camera_y -= cameraspeed * diff_y;
@@ -657,30 +584,6 @@ function cw_drawGhostReplay() {
   ctx.restore();
 }
 
-function cw_drawFloor() {
-  ctx.strokeStyle = "#000";
-  ctx.fillStyle = "#777";
-  ctx.lineWidth = 1/zoom;
-  ctx.beginPath();
-
-  outer_loop:
-  for(var k = Math.max(0,last_drawn_tile-20); k < cw_floorTiles.length; k++) {
-    var b = cw_floorTiles[k];
-    for (f = b.GetFixtureList(); f; f = f.m_next) {
-      var s = f.GetShape();
-      var shapePosition = b.GetWorldPoint(s.m_vertices[0]).x;
-      if((shapePosition > (camera_x - 5)) && (shapePosition < (camera_x + 10))) {
-        cw_drawVirtualPoly(b, s.m_vertices, s.m_vertexCount);
-      }
-      if(shapePosition > camera_x + 10) {
-        last_drawn_tile = k;
-        break outer_loop;
-      }
-    }
-  }
-  ctx.fill();
-  ctx.stroke();
-}
 
 function cw_drawCars() {
   for(var k = (cw_carArray.length-1); k >= 0; k--) {
@@ -956,17 +859,21 @@ function cw_findLeader() {
 }
 
 function cw_newRound() {
-//  cw_stopSimulation();
-//   for (b = world.m_bodyList; b; b = b.m_next) {
-//     world.DestroyBody(b);
-//   }
-//   // world = new b2World(gravity, doSleep);
-//   cw_createFloor();
+  if (mutable_floor) {
+    // GHOST DISABLED
+    ghost = null;
+    floorseed = Math.seedrandom();
+    world = new b2World(gravity, doSleep);
+    cw_createFloor();
+    cw_drawMiniMap();
+  } else {
+    // RE-ENABLE GHOST
+    ghost_reset_ghost(ghost);
+  }
+
   cw_nextGeneration();
-  ghost_reset_ghost(ghost);
   camera_x = camera_y = 0;
   cw_setCameraTarget(-1);
-//  cw_startSimulation();
 }
 
 function cw_startSimulation() {
@@ -1089,7 +996,7 @@ function cw_toggleGhostReplay(button) {
 // initial stuff, only called once (hopefully)
 function cw_init() {
   // clone silver dot and health bar
-  var mmm = document.getElementsByName('minimapmarker')[0];
+  var mmm  = document.getElementsByName('minimapmarker')[0];
   var hbar = document.getElementsByName('healthbar')[0];
 
   for(var k = 0; k < generationSize; k++) {
@@ -1114,7 +1021,7 @@ function cw_init() {
   cw_drawMiniMap();
   cw_generationZero();
   cw_runningInterval = setInterval(simulationStep, Math.round(1000/box2dfps));
-  cw_drawInterval = setInterval(cw_drawScreen, Math.round(1000/screenfps));
+  cw_drawInterval    = setInterval(cw_drawScreen,  Math.round(1000/screenfps));
 }
 
 cw_init();

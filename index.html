@@ -52,9 +52,6 @@
         font-size: 11px;
       }
 
-      #minimap {
-      }
-
       #minimapholder {
         position: relative;
         border: 1px solid black;
@@ -220,6 +217,13 @@ var CoinWidget_Config = {
         </select>
       </div>
       <div>
+        Floor: 
+        <select id="floor" onchange="cw_setMutableFloor(this.options[this.selectedIndex].value)">
+          <option value="0" selected="selected">fixed</option>
+          <option value="1">mutable</option>
+        </select>
+      </div>      
+	  <div>
         Elite clones:
         <select id="elitesize" onchange="cw_setEliteSize(this.options[this.selectedIndex].value)">
           <option value="0">0</option>
@@ -278,8 +282,9 @@ var CoinWidget_Config = {
       <div name="healthtext" class="healthtext"></div>
     </div>
   </body>
-    <script src="seedrandom.js"></script>
-    <script src="box2d.js"></script>
+    <script src="lib/seedrandom.js"></script>
+    <script src="lib/box2d.js"></script>
     <script src="ghost.js"></script>
+    <script src="path.js"></script>
     <script src="cawro.js"></script>
 </html>
