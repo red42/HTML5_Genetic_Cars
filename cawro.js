@@ -44,7 +44,7 @@ var gen_parentality = 0.2;
 var gen_mutation = 0.05;
 var mutation_range = 1;
 var gen_counter = 0;
-var nAttributes = 14; // change this when genome changes
+var nAttributes = 15; // change this when genome changes
 
 var gravity = new b2Vec2(0.0, -9.81);
 var doSleep = true;
@@ -64,6 +64,8 @@ var groundPieceHeight = 0.15;
 
 var chassisMaxAxis = 1.1;
 var chassisMinAxis = 0.1;
+var chassisMinDensity = 30;
+var chassisMaxDensity = 300;
 
 var wheelMaxRadius = 0.5;
 var wheelMinRadius = 0.2;
@@ -142,7 +144,7 @@ cw_Car.prototype.__constructor = function(car_def) {
     document.getElementById("bar"+car_def.index).innerHTML = car_def.index;
   }
 
-  this.chassis = cw_createChassis(car_def.vertex_list);
+  this.chassis = cw_createChassis(car_def.vertex_list, car_def.chassis_density);
   this.wheel1 = cw_createWheel(car_def.wheel_radius1, car_def.wheel_density1);
   this.wheel2 = cw_createWheel(car_def.wheel_radius2, car_def.wheel_density2);
 
@@ -226,14 +228,14 @@ cw_Car.prototype.checkDeath = function() {
   }
 }
 
-function cw_createChassisPart(body, vertex1, vertex2) {
+function cw_createChassisPart(body, vertex1, vertex2, density) {
   var vertex_list = new Array();
   vertex_list.push(vertex1);
   vertex_list.push(vertex2);
   vertex_list.push(b2Vec2.Make(0,0));
   var fix_def = new b2FixtureDef();
   fix_def.shape = new b2PolygonShape();
-  fix_def.density = 80;
+  fix_def.density = density;
   fix_def.friction = 10;
   fix_def.restitution = 0.2;
   fix_def.filter.groupIndex = -1;
@@ -242,21 +244,21 @@ function cw_createChassisPart(body, vertex1, vertex2) {
   body.CreateFixture(fix_def);
 }
 
-function cw_createChassis(vertex_list) {
+function cw_createChassis(vertex_list, density) {
   var body_def = new b2BodyDef();
   body_def.type = b2Body.b2_dynamicBody;
   body_def.position.Set(0.0, 4.0);
 
   var body = world.CreateBody(body_def);
 
-  cw_createChassisPart(body, vertex_list[0],vertex_list[1]);
-  cw_createChassisPart(body, vertex_list[1],vertex_list[2]);
-  cw_createChassisPart(body, vertex_list[2],vertex_list[3]);
-  cw_createChassisPart(body, vertex_list[3],vertex_list[4]);
-  cw_createChassisPart(body, vertex_list[4],vertex_list[5]);
-  cw_createChassisPart(body, vertex_list[5],vertex_list[6]);
-  cw_createChassisPart(body, vertex_list[6],vertex_list[7]);
-  cw_createChassisPart(body, vertex_list[7],vertex_list[0]);
+  cw_createChassisPart(body, vertex_list[0],vertex_list[1], density);
+  cw_createChassisPart(body, vertex_list[1],vertex_list[2], density);
+  cw_createChassisPart(body, vertex_list[2],vertex_list[3], density);
+  cw_createChassisPart(body, vertex_list[3],vertex_list[4], density);
+  cw_createChassisPart(body, vertex_list[4],vertex_list[5], density);
+  cw_createChassisPart(body, vertex_list[5],vertex_list[6], density);
+  cw_createChassisPart(body, vertex_list[6],vertex_list[7], density);
+  cw_createChassisPart(body, vertex_list[7],vertex_list[0], density);
 
   body.vertex_list = vertex_list;
 
@@ -288,6 +290,8 @@ function cw_createRandomCar() {
   car_def.wheel_radius2 = Math.random()*wheelMaxRadius+wheelMinRadius;
   car_def.wheel_density1 = Math.random()*wheelMaxDensity+wheelMinDensity;
   car_def.wheel_density2 = Math.random()*wheelMaxDensity+wheelMinDensity;
+
+  car_def.chassis_density = Math.random()*chassisMaxDensity+chassisMinDensity
 
   car_def.vertex_list = new Array();
   car_def.vertex_list.push(new b2Vec2(Math.random()*chassisMaxAxis + chassisMinAxis,0));
@@ -436,6 +440,8 @@ function cw_makeChild(car_def1, car_def2) {
   curparent = cw_chooseParent(curparent,13);
   newCarDef.wheel_density2 = parents[curparent].wheel_density2;
 
+  curparent = cw_chooseParent(curparent,14);
+  newCarDef.chassis_density = parents[curparent].chassis_density;
   return newCarDef;
 }
 
@@ -485,6 +491,9 @@ function cw_mutate(car_def) {
   if(Math.random() < gen_mutation)
     car_def.wheel_density2 = cw_mutate1(
         car_def.wheel_density2, wheelMinDensity, wheelMaxDensity);
+  if(Math.random() < gen_mutation)
+    car_def.chassis_density = cw_mutate1(
+        car_def.chassis_density, chassisMinDensity, chassisMaxDensity);
 
   cw_mutatev(car_def, 0, 1, 0);
   cw_mutatev(car_def, 1, 1, 1);
@@ -615,12 +624,15 @@ function cw_drawCars() {
       var rgbcolor = "rgb("+color+","+color+","+color+")";
       cw_drawCircle(b, s.m_p, s.m_radius, b.m_sweep.a, rgbcolor);
     }
+    var densitycolor = Math.round(100 - (70 * ((myCar.car_def.chassis_density - chassisMinDensity) / chassisMaxDensity))).toString() + "%";
     if(myCar.is_elite) {
       ctx.strokeStyle = "#44c";
-      ctx.fillStyle = "#ddf";
+      //ctx.fillStyle = "#ddf";
+      ctx.fillStyle = "hsl(240,50%,"+densitycolor+")";
     } else {
       ctx.strokeStyle = "#c44";
-      ctx.fillStyle = "#fdd";
+      //ctx.fillStyle = "#fdd";
+      ctx.fillStyle = "hsl(0,50%,"+densitycolor+")";
     }
     ctx.beginPath();
     var b = myCar.chassis;
