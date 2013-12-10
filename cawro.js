@@ -533,6 +533,11 @@ function cw_setMutableFloor(choice) {
   mutable_floor = (choice==1);
 }
 
+function cw_setGravity(choice) {
+  gravity = new b2Vec2(0.0, -parseFloat(choice));
+}
+
+
 function cw_setEliteSize(clones) {
   gen_champions = parseInt(clones, 10);
 }
@@ -779,12 +784,16 @@ function cw_newRound() {
     // GHOST DISABLED
     ghost = null;
     floorseed = Math.seedrandom();
+
     world = new b2World(gravity, doSleep);
     cw_createFloor();
     cw_drawMiniMap();
   } else {
     // RE-ENABLE GHOST
     ghost_reset_ghost(ghost);
+
+    world = new b2World(gravity, doSleep);
+    cw_createFloor();
   }
 
   cw_nextGeneration();

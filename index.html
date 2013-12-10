@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta charset="utf-8" />
     <title>HTML5 Genetic Algorithm 2D Car Thingy - Chrome recommended</title>
     <style>
       #mainbox {
@@ -223,6 +224,19 @@ var CoinWidget_Config = {
           <option value="1">mutable</option>
         </select>
       </div>
+      <div>
+        Gravity:
+        <select id="gravity" onchange="cw_setGravity(this.options[this.selectedIndex].value)">
+          <option value="24.8">Jupiter (24.8)</option>
+          <option value="11.2">Neptune (11.2)</option>
+          <option value="10.4">Saturn (10.4)</option>
+          <option value="9.81" selected="selected">Earth (9.81)</option>
+          <option value="8.9">Venus (8.9)</option>
+          <option value="8.7">Uranus (8.7)</option>
+          <option value="3.7">Mars/Mercury (3.7)</option>
+          <option value="1.6">Moon (1.6)</option>
+        </select>
+      </div>
 	  <div>
         Elite clones:
         <select id="elitesize" onchange="cw_setEliteSize(this.options[this.selectedIndex].value)">
@@ -283,11 +297,12 @@ var CoinWidget_Config = {
       <div name="health" class="health"></div>
       <div name="healthtext" class="healthtext"></div>
     </div>
-  </body>
+
     <script src="lib/seedrandom.js"></script>
     <script src="lib/box2d.js"></script>
     <script src="ghost.js"></script>
     <script src="path.js"></script>
     <script src="cawro.js"></script>
     <script src="graphs.js"></script>
+  </body>
 </html>
