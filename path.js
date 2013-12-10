@@ -7,7 +7,7 @@ function cw_createFloor() {
   cw_floorTiles = new Array();
   Math.seedrandom(floorseed);
   for(var k = 0; k < maxFloorTiles; k++) {
-   if(!mutable_floor) {
+    if (!mutable_floor) {
       // keep old impossible tracks if not using mutable floors
       last_tile = cw_createFloorTile(tile_position, (Math.random()*3 - 1.5) * 1.5*k/maxFloorTiles);
     } else {

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta charset="utf-8" />
     <title>HTML5 Genetic Algorithm 2D Car Thingy - Chrome recommended</title>
     <style>
       #mainbox {
@@ -217,12 +218,25 @@ var CoinWidget_Config = {
         </select>
       </div>
       <div>
-        Floor: 
+        Floor:
         <select id="floor" onchange="cw_setMutableFloor(this.options[this.selectedIndex].value)">
           <option value="0" selected="selected">fixed</option>
           <option value="1">mutable</option>
         </select>
-      </div>      
+      </div>
+      <div>
+        Gravity:
+        <select id="gravity" onchange="cw_setGravity(this.options[this.selectedIndex].value)">
+          <option value="24.8">Jupiter (24.8)</option>
+          <option value="11.2">Neptune (11.2)</option>
+          <option value="10.4">Saturn (10.4)</option>
+          <option value="9.81" selected="selected">Earth (9.81)</option>
+          <option value="8.9">Venus (8.9)</option>
+          <option value="8.7">Uranus (8.7)</option>
+          <option value="3.7">Mars/Mercury (3.7)</option>
+          <option value="1.6">Moon (1.6)</option>
+        </select>
+      </div>
 	  <div>
         Elite clones:
         <select id="elitesize" onchange="cw_setEliteSize(this.options[this.selectedIndex].value)">
@@ -254,6 +268,7 @@ var CoinWidget_Config = {
       New Population: Keeps the generated track and restarts the whole car population.<br />
       Create new world with seed: The same seed always creates the same track, so you can agree on a seed with your friends and compete. :)<br />
       Mutation rate: The chance that each gene in each individual will mutate to a random value when a new generation is born.<br />
+      Mutation size: The range each gene can mutate into. Lower numbers mean the gene will have values closer to the original.<br />
       Elite clones: The top n cars that will be copied over to the next generation.<br />
       View top replay: Pause the current simulation and show the top performing car. Click a second time to resume simulation.
       <h3>Graph</h3>
@@ -269,7 +284,8 @@ var CoinWidget_Config = {
       - Shape: (8 genes, 1 per vertex)<br />
       - Wheel size: (2 genes, 1 per wheel)<br />
       - Wheel position: (2 genes, 1 per wheel)<br />
-      - Wheel density: (2 genes, 1 per wheel) darker wheels mean denser wheels
+      - Wheel density: (2 genes, 1 per wheel) darker wheels mean denser wheels<br />
+      - Chassis density: (1 gene) darker body means denser chassis
       <h3>Blurb</h3>
       This is not as deterministic as it should be, so your best car may not perform as well as it once did. The terrain gets more complex with distance.<br />
       I'm not in the mood to deal with checking if all scripts have loaded before running, so refresh the page if things seem whack.<br />
@@ -281,11 +297,12 @@ var CoinWidget_Config = {
       <div name="health" class="health"></div>
       <div name="healthtext" class="healthtext"></div>
     </div>
-  </body>
+
     <script src="lib/seedrandom.js"></script>
     <script src="lib/box2d.js"></script>
     <script src="ghost.js"></script>
     <script src="path.js"></script>
     <script src="cawro.js"></script>
     <script src="graphs.js"></script>
+  </body>
 </html>
