@@ -44,7 +44,8 @@ var gen_parentality = 0.2;
 var gen_mutation = 0.05;
 var mutation_range = 1;
 var gen_counter = 0;
-var nAttributes = 15; // change this when genome changes
+var nWheels = 3;
+var nAttributes = 9 + 3 * nWheels; // change this when genome changes
 
 var gravity = new b2Vec2(0.0, -9.81);
 var doSleep = true;
@@ -456,8 +457,7 @@ function cw_mutate1(old, min, range) {
     return base + span * Math.random();
 }
 
-function cw_mutatev(car_def, n, xfact, yfact)
-{
+function cw_mutatev(car_def, n, xfact, yfact) {
     if (Math.random() >= gen_mutation)
         return;
 
@@ -536,7 +536,6 @@ function cw_setMutableFloor(choice) {
 function cw_setGravity(choice) {
   gravity = new b2Vec2(0.0, -parseFloat(choice));
 }
-
 
 function cw_setEliteSize(clones) {
   gen_champions = parseInt(clones, 10);
@@ -792,8 +791,10 @@ function cw_newRound() {
     // RE-ENABLE GHOST
     ghost_reset_ghost(ghost);
 
-    world = new b2World(gravity, doSleep);
-    cw_createFloor();
+    // CHECK GRAVITY CHANGES
+    if (world.GetGravity().y != gravity.y) {
+      world.SetGravity(gravity);
+    }
   }
 
   cw_nextGeneration();
