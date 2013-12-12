@@ -534,6 +534,10 @@ function cw_setMutableFloor(choice) {
 
 function cw_setGravity(choice) {
   gravity = new b2Vec2(0.0, -parseFloat(choice));
+  // CHECK GRAVITY CHANGES
+  if (world.GetGravity().y != gravity.y) {
+    world.SetGravity(gravity);
+  }
 }
 
 function cw_setEliteSize(clones) {
@@ -789,11 +793,6 @@ function cw_newRound() {
   } else {
     // RE-ENABLE GHOST
     ghost_reset_ghost(ghost);
-
-    // CHECK GRAVITY CHANGES
-    if (world.GetGravity().y != gravity.y) {
-      world.SetGravity(gravity);
-    }
   }
 
   cw_nextGeneration();
