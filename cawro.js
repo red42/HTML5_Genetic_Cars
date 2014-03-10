@@ -133,16 +133,16 @@ cw_Car.prototype.__constructor = function(car_def) {
   this.healthBar = document.getElementById("health"+car_def.index).style;
   this.healthBarText = document.getElementById("health"+car_def.index).nextSibling.nextSibling;
   this.healthBarText.innerHTML = car_def.index;
-  this.minimapmarker = document.getElementById("bar"+car_def.index).style;
+  this.minimapmarker = document.getElementById("bar"+car_def.index);
 
   if(this.is_elite) {
     this.healthBar.backgroundColor = "#44c";
-    document.getElementById("bar"+car_def.index).style.borderLeft = "1px solid #44c";
-    document.getElementById("bar"+car_def.index).innerHTML = car_def.index;
+    this.minimapmarker.style.borderLeft = "1px solid #44c";
+    this.minimapmarker.innerHTML = car_def.index;
   } else {
     this.healthBar.backgroundColor = "#c44";
-    document.getElementById("bar"+car_def.index).style.borderLeft = "1px solid #c44";
-    document.getElementById("bar"+car_def.index).innerHTML = car_def.index;
+    this.minimapmarker.style.borderLeft = "1px solid #c44";
+    this.minimapmarker.innerHTML = car_def.index;
   }
 
   this.chassis = cw_createChassis(car_def.vertex_list, car_def.chassis_density);
@@ -203,6 +203,11 @@ cw_Car.prototype.kill = function() {
     world.DestroyBody(this.wheels[i]);
   }
   this.alive = false;
+  
+  // refocus camera to leader on death
+  if (camera_target == this.car_def.index){
+    cw_setCameraTarget(-1);
+  }
 }
 
 cw_Car.prototype.checkDeath = function() {
@@ -780,12 +785,13 @@ function simulationStep() {
     ghost_add_replay_frame(cw_carArray[k].replay, cw_carArray[k]);
     cw_carArray[k].frames++;
     position = cw_carArray[k].getPosition();
-    cw_carArray[k].minimapmarker.left = Math.round((position.x+5) * minimapscale) + "px";
+    cw_carArray[k].minimapmarker.style.left = Math.round((position.x+5) * minimapscale) + "px";
     cw_carArray[k].healthBar.width = Math.round((cw_carArray[k].health/max_car_health)*100) + "%";
     if(cw_carArray[k].checkDeath()) {
       cw_carArray[k].kill();
       cw_deadCars++;
       document.getElementById("population").innerHTML = "cars alive: " + (generationSize-cw_deadCars);
+      cw_carArray[k].minimapmarker.style.borderLeft = "1px solid #ccc";
       if(cw_deadCars >= generationSize) {
         cw_newRound();
       }
