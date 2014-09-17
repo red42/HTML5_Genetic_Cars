@@ -701,7 +701,12 @@ function toggleDisplay() {
   if(doDraw) {
     doDraw = false;
     cw_stopSimulation();
-    cw_runningInterval = setInterval(simulationStep, 1); // simulate 1000x per second when not drawing
+    cw_runningInterval = setInterval(function() {
+      var time = performance.now() + (1000 / screenfps);
+      while (time > performance.now()) {
+        simulationStep();
+      }
+    }, 1);
   } else {
     doDraw = true;
     clearInterval(cw_runningInterval);
