@@ -19,6 +19,7 @@ function cw_createFloor() {
     last_world_coords = last_tile.GetWorldPoint(last_fixture.GetShape().m_vertices[3]);
     tile_position = last_world_coords;
   }
+  world.finishLine = tile_position.x;
 }
 
 

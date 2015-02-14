@@ -213,6 +213,11 @@ cw_Car.prototype.kill = function() {
 cw_Car.prototype.checkDeath = function() {
   // check health
   var position = this.getPosition();
+  // check if car reached end of the path
+  if(position.x > world.finishLine) {
+      this.healthBar.width = "0";
+      return true;
+  }
   if(position.y > this.maxPositiony) {
     this.maxPositiony = position.y;
   }
