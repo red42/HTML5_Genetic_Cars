@@ -784,6 +784,7 @@ function saveProgress() {
   localStorage.cw_genCounter = gen_counter;
   localStorage.cw_ghost = JSON.stringify(ghost);
   localStorage.cw_topScores = JSON.stringify(cw_topScores);
+  localStorage.cw_floorSeed = floorseed;
 }
 
 function restoreProgress() {
@@ -796,6 +797,17 @@ function restoreProgress() {
   gen_counter = localStorage.cw_genCounter;
   ghost = JSON.parse(localStorage.cw_ghost);
   cw_topScores = JSON.parse(localStorage.cw_topScores);
+  floorseed = localStorage.cw_floorSeed;
+  document.getElementById("newseed").value = floorseed;
+
+  for (b = world.m_bodyList; b; b = b.m_next) {
+    world.DestroyBody(b);
+  }
+  Math.seedrandom(floorseed);
+  cw_createFloor();
+  cw_drawMiniMap();
+  Math.seedrandom();
+
   cw_materializeGeneration();
   cw_deadCars = 0;
   leaderPosition = new Object();
@@ -859,7 +871,7 @@ function cw_newRound() {
   if (mutable_floor) {
     // GHOST DISABLED
     ghost = null;
-    floorseed = Math.seedrandom();
+    floorseed = btoa(Math.seedrandom());
 
     world = new b2World(gravity, doSleep);
     cw_createFloor();
@@ -1013,7 +1025,7 @@ function cw_init() {
   }
   mmm.parentNode.removeChild(mmm);
   hbar.parentNode.removeChild(hbar);
-  floorseed = Math.seedrandom();
+  floorseed = btoa(Math.seedrandom());
   world = new b2World(gravity, doSleep);
   cw_createFloor();
   cw_drawMiniMap();
