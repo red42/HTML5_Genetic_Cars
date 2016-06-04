@@ -87,6 +87,8 @@ var cw_ghostReplayInterval = null;
 
 var distanceMeter = document.getElementById("distancemeter");
 
+var floorseed;
+
 var leaderPosition = new Object();
 leaderPosition.x = 0;
 leaderPosition.y = 0;
@@ -1030,7 +1032,8 @@ function cw_init() {
   }
   mmm.parentNode.removeChild(mmm);
   hbar.parentNode.removeChild(hbar);
-  floorseed = btoa(Math.seedrandom());
+  floorseed = document.getElementById("newseed").value;
+  Math.seedrandom(floorseed);
   world = new b2World(gravity, doSleep);
   cw_createFloor();
   cw_drawMiniMap();
