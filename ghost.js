@@ -5,8 +5,8 @@ function ghost_create_replay() {
     return null;
 
   return {
-    num_frames : 0,
-    frames     : [],
+    num_frames: 0,
+    frames: [],
   }
 }
 
@@ -15,9 +15,9 @@ function ghost_create_ghost() {
     return null;
 
   return {
-    replay    : null,
-    frame     : 0,
-    dist      : -100
+    replay: null,
+    frame: 0,
+    dist: -100
   }
 }
 
@@ -30,13 +30,13 @@ function ghost_reset_ghost(ghost) {
 }
 
 function ghost_pause(ghost) {
-  if(ghost != null)
+  if (ghost != null)
     ghost.old_frame = ghost.frame;
   ghost_reset_ghost(ghost);
 }
 
 function ghost_resume(ghost) {
-  if(ghost != null)
+  if (ghost != null)
     ghost.frame = ghost.old_frame;
 }
 
@@ -106,18 +106,18 @@ function ghost_draw_frame(ctx, ghost) {
   // wheel style
   ctx.fillStyle = "#eee";
   ctx.strokeStyle = "#aaa";
-  ctx.lineWidth = 1/zoom;
+  ctx.lineWidth = 1 / zoom;
 
-  for (var i = 0; i < frame.wheels.length; i++){
-    for (w in frame.wheels[i]){
+  for (var i = 0; i < frame.wheels.length; i++) {
+    for (w in frame.wheels[i]) {
       ghost_draw_circle(ctx, frame.wheels[i][w].pos, frame.wheels[i][w].rad, frame.wheels[i][w].ang);
     }
   }
 
   // chassis style
-  ctx.strokeStyle = "#fbb";
-  ctx.fillStyle = "#fee";
-  ctx.lineWidth = 1/zoom;
+  ctx.strokeStyle = "#aaa";
+  ctx.fillStyle = "#eee";
+  ctx.lineWidth = 1 / zoom;
   ctx.beginPath();
   for (c in frame.chassis)
     ghost_draw_poly(ctx, frame.chassis[c].vtx, frame.chassis[c].num);
@@ -127,15 +127,15 @@ function ghost_draw_frame(ctx, ghost) {
 
 function ghost_get_frame(car) {
   var out = {
-    chassis : ghost_get_chassis(car.chassis),
-    wheels  : [],
-    pos     : {x: car.getPosition().x, y: car.getPosition().y}
+    chassis: ghost_get_chassis(car.chassis),
+    wheels: [],
+    pos: {x: car.getPosition().x, y: car.getPosition().y}
   };
-  
-  for (var i = 0; i < car.wheels.length; i++){
+
+  for (var i = 0; i < car.wheels.length; i++) {
     out.wheels[i] = ghost_get_wheel(car.wheels[i]);
   }
-  
+
   return out;
 }
 
@@ -146,8 +146,8 @@ function ghost_get_chassis(c) {
     s = f.GetShape();
 
     var p = {
-      vtx : [],
-      num : 0
+      vtx: [],
+      num: 0
     }
 
     p.num = s.m_vertexCount;
@@ -169,9 +169,9 @@ function ghost_get_wheel(w) {
     s = f.GetShape();
 
     var c = {
-      pos : w.GetWorldPoint(s.m_p),
-      rad : s.m_radius,
-      ang : w.m_sweep.a
+      pos: w.GetWorldPoint(s.m_p),
+      rad: s.m_radius,
+      ang: w.m_sweep.a
     }
 
     gw.push(c);
@@ -190,10 +190,10 @@ function ghost_draw_poly(ctx, vtx, n_vtx) {
 
 function ghost_draw_circle(ctx, center, radius, angle) {
   ctx.beginPath();
-  ctx.arc(center.x, center.y, radius, 0, 2*Math.PI, true);
+  ctx.arc(center.x, center.y, radius, 0, 2 * Math.PI, true);
 
   ctx.moveTo(center.x, center.y);
-  ctx.lineTo(center.x + radius*Math.cos(angle), center.y + radius*Math.sin(angle));
+  ctx.lineTo(center.x + radius * Math.cos(angle), center.y + radius * Math.sin(angle));
 
   ctx.fill();
   ctx.stroke();
