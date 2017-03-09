@@ -63,14 +63,14 @@ var last_drawn_tile = 0;
 var groundPieceWidth = 1.5;
 var groundPieceHeight = 0.15;
 
-var chassisMaxAxis = 1.1;
+var chassisAxisRange = 1.1;
 var chassisMinAxis = 0.1;
 var chassisMinDensity = 30;
-var chassisMaxDensity = 300;
+var chassisDensityRange = 300;
 
-var wheelMaxRadius = 0.5;
+var wheelRadiusRange = 0.5;
 var wheelMinRadius = 0.2;
-var wheelMaxDensity = 100;
+var wheelDensityRange = 100;
 var wheelMinDensity = 40;
 
 var velocityIndex = 0;
@@ -316,21 +316,21 @@ function cw_createRandomCar() {
   car_def.wheel_density = [];
   car_def.wheel_vertex = [];
   for (var i = 0; i < car_def.wheelCount; i++) {
-    car_def.wheel_radius[i] = Math.random() * wheelMaxRadius + wheelMinRadius;
-    car_def.wheel_density[i] = Math.random() * wheelMaxDensity + wheelMinDensity;
+    car_def.wheel_radius[i] = Math.random() * wheelRadiusRange + wheelMinRadius;
+    car_def.wheel_density[i] = Math.random() * wheelDensityRange + wheelMinDensity;
   }
 
-  car_def.chassis_density = Math.random() * chassisMaxDensity + chassisMinDensity
+  car_def.chassis_density = Math.random() * chassisDensityRange + chassisMinDensity
 
   car_def.vertex_list = new Array();
-  car_def.vertex_list.push(new b2Vec2(Math.random() * chassisMaxAxis + chassisMinAxis, 0));
-  car_def.vertex_list.push(new b2Vec2(Math.random() * chassisMaxAxis + chassisMinAxis, Math.random() * chassisMaxAxis + chassisMinAxis));
-  car_def.vertex_list.push(new b2Vec2(0, Math.random() * chassisMaxAxis + chassisMinAxis));
-  car_def.vertex_list.push(new b2Vec2(-Math.random() * chassisMaxAxis - chassisMinAxis, Math.random() * chassisMaxAxis + chassisMinAxis));
-  car_def.vertex_list.push(new b2Vec2(-Math.random() * chassisMaxAxis - chassisMinAxis, 0));
-  car_def.vertex_list.push(new b2Vec2(-Math.random() * chassisMaxAxis - chassisMinAxis, -Math.random() * chassisMaxAxis - chassisMinAxis));
-  car_def.vertex_list.push(new b2Vec2(0, -Math.random() * chassisMaxAxis - chassisMinAxis));
-  car_def.vertex_list.push(new b2Vec2(Math.random() * chassisMaxAxis + chassisMinAxis, -Math.random() * chassisMaxAxis - chassisMinAxis));
+  car_def.vertex_list.push(new b2Vec2(Math.random() * chassisAxisRange + chassisMinAxis, 0));
+  car_def.vertex_list.push(new b2Vec2(Math.random() * chassisAxisRange + chassisMinAxis, Math.random() * chassisAxisRange + chassisMinAxis));
+  car_def.vertex_list.push(new b2Vec2(0, Math.random() * chassisAxisRange + chassisMinAxis));
+  car_def.vertex_list.push(new b2Vec2(-Math.random() * chassisAxisRange - chassisMinAxis, Math.random() * chassisAxisRange + chassisMinAxis));
+  car_def.vertex_list.push(new b2Vec2(-Math.random() * chassisAxisRange - chassisMinAxis, 0));
+  car_def.vertex_list.push(new b2Vec2(-Math.random() * chassisAxisRange - chassisMinAxis, -Math.random() * chassisAxisRange - chassisMinAxis));
+  car_def.vertex_list.push(new b2Vec2(0, -Math.random() * chassisAxisRange - chassisMinAxis));
+  car_def.vertex_list.push(new b2Vec2(Math.random() * chassisAxisRange + chassisMinAxis, -Math.random() * chassisAxisRange - chassisMinAxis));
 
   var left = [];
   for (var i = 0; i < 8; i++) {
@@ -532,9 +532,9 @@ function cw_mutatev(car_def, n, xfact, yfact) {
   var x = 0;
   var y = 0;
   if (xfact != 0)
-    x = xfact * cw_mutate1(xfact * v.x, chassisMinAxis, chassisMaxAxis);
+    x = xfact * cw_mutate1(xfact * v.x, chassisMinAxis, chassisAxisRange);
   if (yfact != 0)
-    y = yfact * cw_mutate1(yfact * v.y, chassisMinAxis, chassisMaxAxis);
+    y = yfact * cw_mutate1(yfact * v.y, chassisMinAxis, chassisAxisRange);
   car_def.vertex_list.splice(n, 1, new b2Vec2(x, y));
 }
 
@@ -542,7 +542,7 @@ function cw_mutatev(car_def, n, xfact, yfact) {
 function cw_mutate(car_def) {
   for (var i = 0; i < car_def.wheelCount; i++) {
     if (Math.random() < gen_mutation) {
-      car_def.wheel_radius[i] = cw_mutate1(car_def.wheel_radius[i], wheelMinRadius, wheelMaxRadius);
+      car_def.wheel_radius[i] = cw_mutate1(car_def.wheel_radius[i], wheelMinRadius, wheelRadiusRange);
     }
   }
 
@@ -556,12 +556,12 @@ function cw_mutate(car_def) {
 
   for (var i = 0; i < car_def.wheelCount; i++) {
     if (Math.random() < gen_mutation) {
-      car_def.wheel_density[i] = cw_mutate1(car_def.wheel_density[i], wheelMinDensity, wheelMaxDensity);
+      car_def.wheel_density[i] = cw_mutate1(car_def.wheel_density[i], wheelMinDensity, wheelDensityRange);
     }
   }
 
   if (Math.random() < gen_mutation) {
-    car_def.chassis_density = cw_mutate1(car_def.chassis_density, chassisMinDensity, chassisMaxDensity);
+    car_def.chassis_density = cw_mutate1(car_def.chassis_density, chassisMinDensity, chassisDensityRange);
   }
 
   cw_mutatev(car_def, 0, 1, 0);
@@ -691,7 +691,7 @@ function cw_drawCars() {
       b = myCar.wheels[i];
       for (f = b.GetFixtureList(); f; f = f.m_next) {
         var s = f.GetShape();
-        var color = Math.round(255 - (255 * (f.m_density - wheelMinDensity)) / wheelMaxDensity).toString();
+        var color = Math.round(255 - (255 * (f.m_density - wheelMinDensity)) / wheelDensityRange).toString();
         var rgbcolor = "rgb(" + color + "," + color + "," + color + ")";
         cw_drawCircle(b, s.m_p, s.m_radius, b.m_sweep.a, rgbcolor);
       }
