@@ -2,12 +2,14 @@
 
 const random = {
   shuffleIntegers(prop, generator){
-    var l = prop.length || 1;
     var max = prop.max || 10;
+    var l = prop.length || max;
     var values = [0];
     if(l === 1) return values;
     for(var i = 1; i < max; i++){
-      var placement = createIntegers({ length: 1, min: 0, range: i }, generator)[0];
+      var placement = random.createIntegers(
+        { length: 1, min: 0, range: i }, generator
+      )[0];
       if(placement === 0){
         values.unshift(i);
       } else if(placement === i){
@@ -16,23 +18,25 @@ const random = {
         values.splice(placement, 0, i)
       }
     }
-    return values.slice(l);
+    return values.slice(0, l);
   },
   createIntegers(prop, generator){
     return random.createFloats({
       min: prop.min || 0,
       range: prop.range || 10,
+      length: prop.length
     }, generator).map(function(float){
       return Math.round(float);
     });
   },
   createFloats(prop, generator){
+    var l = prop.length;
     prop = {
       min: prop.min || 0,
       range: prop.range || 1,
     }
     var values = [];
-    for(var i = 0, l = prop.length; i < l; i++){
+    for(var i = 0; i < l; i++){
       values.push(
         createFloat(prop, generator)
       );
@@ -46,10 +50,11 @@ const random = {
     for(var i = 0; i < l; i++){
       var nextVal;
       do {
-        nextVal = mutateIntegers(
-          { length: 1, min: 0, range: max },
+        nextVal = random.mutateIntegers(
+          { min: 0, range: max },
           generator,
-          originalValues[i],
+          [originalValues[i]],
+          mutation_range
         )[0];
       } while(values.indexOf(nextVal) > -1);
       values.push(nextVal)
@@ -61,7 +66,7 @@ const random = {
       min: prop.min || 0,
       range: prop.range || 10
     }
-    return mutateFloats(
+    return random.mutateFloats(
       prop, generator, originalValues, mutation_range
     ).map(function(float){
       return Math.round(float);
@@ -72,8 +77,11 @@ const random = {
       min: prop.min || 0,
       range: prop.range || 1
     }
+    console.log(arguments);
     return originalValues.map(function(originalValue){
-      return mutateFloat(prop, generator, originalValue, mutation_range)
+      return mutateFloat(
+        prop, generator, originalValue, mutation_range
+      );
     });
   },
 };
@@ -94,7 +102,7 @@ function mutateFloat(prop, generator, originalValue, mutation_range){
     throw new Error("mutation should scale to zero");
   }
   var newMin = originalValue - 0.5 * newRange;
-  if (newMin < min) newMin = oldMin;
+  if (newMin < oldMin) newMin = oldMin;
   if (newMin + newRange  > oldMin + oldRange)
     newMin = (oldMin + oldRange) - newRange;
   return createFloat({

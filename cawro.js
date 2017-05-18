@@ -1,4 +1,8 @@
 // Global Vars
+
+var carSchema = require("/src/car-schema.js");
+var genetic = require("/src/genetic-algorithm.js");
+
 var ghost;
 
 var timeStep = 1.0 / 60.0;
@@ -68,6 +72,7 @@ var chassisMinAxis = 0.1;
 var chassisMinDensity = 30;
 var chassisDensityRange = 300;
 
+var wheelCount = 2;
 var wheelRadiusRange = 0.5;
 var wheelMinRadius = 0.2;
 var wheelDensityRange = 100;
@@ -146,7 +151,10 @@ cw_Car.prototype.__constructor = function (car_def) {
     this.minimapmarker.innerHTML = car_def.index;
   }
 
-  var instance = createCar(world, car_def);
+  var instance = carSchema.createCar(world, car_def, {
+    gravity: gravity,
+    motorSpeed: motorSpeed,
+  });
   this.chassis = instance.chassis;
   this.wheels = instance.wheels;
 
@@ -245,7 +253,14 @@ function cw_generationZero() {
     chassisMinAxis: chassisMinAxis,
     chassisAxisRange: chassisAxisRange,
   });
-  cw_carGeneration = genetic.generationZero(schema, generationSize);
+  cw_carGeneration = [];
+  for (var k = 0; k < generationSize; k++) {
+    var def = genetic.createGenerationZero(schema, function(){
+      return Math.random()
+    });
+    def.index = k;
+    cw_carGeneration.push(def);
+  }
 
   gen_counter = 0;
   cw_deadCars = 0;
@@ -353,15 +368,9 @@ function cw_makeChild(car_def1, car_def2) {
     chassisAxisRange: chassisAxisRange,
   });
   var i = 0;
-  return genetic.createCrossBreed(schema, function(){
-    return Math.random()
-  }, [car_def1, car_def2], function(key, parents){
+  return genetic.createCrossBreed(schema, [car_def1, car_def2], function(key, parents){
     if(["wheel_radius", "wheel_vertex", "wheel_density"].indexOf(key) > -1){
-      if (variateWheelParents) {
-        curparent = cw_chooseParent(curparent, ++i);
-      } else {
-        curparent = wheelParent;
-      }
+      curparent = cw_chooseParent(curparent, ++i);
       return curparent;
     }
     return cw_chooseParent(curparent, ++i);

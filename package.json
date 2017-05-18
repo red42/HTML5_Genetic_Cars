@@ -1,0 +1,23 @@
+{
+  "name": "genetic-cars-html5",
+  "version": "1.0.0",
+  "description": "HTML5 Genetic Cars ==================",
+  "main": "cawro.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "browserify -r ./src/car-schema.js -r ./src/genetic-algorithm.js -o ./bundle.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/formula1/HTML5_Genetic_Cars.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/formula1/HTML5_Genetic_Cars/issues"
+  },
+  "homepage": "https://github.com/formula1/HTML5_Genetic_Cars#readme",
+  "devDependencies": {
+    "browserify": "^14.3.0"
+  }
+}

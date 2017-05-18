@@ -1,8 +1,5 @@
-const Constants = {
-  wheelCount: 2
-};
 
-module.export = {
+module.exports = {
   generateSchema: function(values){
     return {
       wheel_radius: {
@@ -11,7 +8,7 @@ module.export = {
         min: values.wheelMinRadius,
         range: values.wheelRadiusRange,
       },
-      wheel_radius: {
+      wheel_density: {
         type: "float",
         length: values.wheelCount,
         min: values.wheelMinDensity,
@@ -31,37 +28,42 @@ module.export = {
       },
       wheel_vertex: {
         type: "shuffle",
-        max: 8,
+        max: 7,
         length: 2
       },
     };
   },
-  createCar: function(world, car_def){
+  createCar: function(world, car_def, constants){
     var instance = {};
-    instance.chassis = cw_createChassis(world, car_def.vertex_list, car_def.chassis_density);
+    instance.chassis = createChassis(
+      world, car_def.vertex_list, car_def.chassis_density
+    );
+    var i;
+
+    var wheelCount = car_def.wheel_radius.length;
 
     instance.wheels = [];
-    for (var i = 0; i < car_def.wheelCount; i++) {
-      instance.wheels[i] = cw_createWheel(world, car_def.wheel_radius[i], car_def.wheel_density[i]);
+    for (i = 0; i < wheelCount; i++) {
+      instance.wheels[i] = createWheel(
+        world, car_def.wheel_radius[i], car_def.wheel_density[i]
+      );
     }
 
     var carmass = instance.chassis.GetMass();
-    for (var i = 0; i < car_def.wheelCount; i++) {
+    for (i = 0; i < wheelCount; i++) {
       carmass += instance.wheels[i].GetMass();
-    }
-    var torque = [];
-    for (var i = 0; i < car_def.wheelCount; i++) {
-      torque[i] = carmass * -gravity.y / car_def.wheel_radius[i];
     }
 
     var joint_def = new b2RevoluteJointDef();
 
-    for (var i = 0; i < car_def.wheelCount; i++) {
+    for (i = 0; i < wheelCount; i++) {
+      var torque = carmass * -constants.gravity.y / car_def.wheel_radius[i];
+
       var randvertex = instance.chassis.vertex_list[car_def.wheel_vertex[i]];
       joint_def.localAnchorA.Set(randvertex.x, randvertex.y);
       joint_def.localAnchorB.Set(0, 0);
-      joint_def.maxMotorTorque = torque[i];
-      joint_def.motorSpeed = -motorSpeed;
+      joint_def.maxMotorTorque = torque;
+      joint_def.motorSpeed = -constants.motorSpeed;
       joint_def.enableMotor = true;
       joint_def.bodyA = instance.chassis;
       joint_def.bodyB = instance.wheels[i];
@@ -82,7 +84,7 @@ function createChassis(world, vertexs, density) {
   vertex_list.push(new b2Vec2(-vertexs[6], 0));
   vertex_list.push(new b2Vec2(-vertexs[7], -vertexs[8]));
   vertex_list.push(new b2Vec2(0, -vertexs[9]));
-  vertex_list.push(new b2Vec2(vertexs[10], -vertexs[11]);
+  vertex_list.push(new b2Vec2(vertexs[10], -vertexs[11]));
 
   var body_def = new b2BodyDef();
   body_def.type = b2Body.b2_dynamicBody;

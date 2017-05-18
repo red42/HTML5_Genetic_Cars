@@ -1,15 +1,6 @@
 var random = require("./random.js");
 
 module.exports = {
-  generationZero(schema, size){
-    var defs = [];
-    for (var k = 0; k < size; k++) {
-      var defs = random.schemaToRandoms(schema);
-      defs.index = k;
-      defs.push(car_def);
-    }
-    return defs;
-  },
   createGenerationZero(schema, generator){
     return Object.keys(schema).reduce(function(instance, key){
       var schemaProp = schema[key];
@@ -24,7 +15,7 @@ module.exports = {
         default:
           throw new Error(`Unknown type ${schemaProp.type} of schema for key ${key}`);
       }
-      values = instance[key];
+      instance[key] = values;
       return instance;
     }, {});
   },
@@ -44,6 +35,7 @@ module.exports = {
     return Object.keys(schema).reduce(function(clone, key){
       var schemaProp = schema[key];
       var values;
+      console.log(key, parent[key]);
       switch(schemaProp.type){
         case "shuffle" : values = random.mutateShuffle(
           schemaProp, generator, parent[key], factor

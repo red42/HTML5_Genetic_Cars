@@ -1,0 +1,28 @@
+{
+  "env": {},
+  "plugins": [],
+  "extends": [
+    "eslint:recommended"
+  ],
+  "globals": {
+    "console": true,
+    "require": true,
+    "Set": true,
+    "Map": true,
+    "setTimeout": true,
+    "clearTimeout": true,
+    "setImmediate": true,
+    "__dirname": true,
+    "global": true,
+    "self": true,
+    "module": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 5,
+    "sourceType": "module",
+    "impliedStrict": true
+  },
+  "rules": {
+    "no-console": 0
+  }
+}
