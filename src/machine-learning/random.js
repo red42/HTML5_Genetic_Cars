@@ -2,6 +2,7 @@
 
 const random = {
   shuffleIntegers(prop, generator){
+    var offset = prop.offset || 0;
     var max = prop.max || 10;
     var l = prop.length || max;
     var values = [0];
@@ -18,7 +19,9 @@ const random = {
         values.splice(placement, 0, i)
       }
     }
-    return values.slice(0, l);
+    return values.slice(0, l).map(function(num){
+      return offset + num;
+    });
   },
   createIntegers(prop, generator){
     return random.createFloats({
@@ -46,6 +49,7 @@ const random = {
   mutateShuffle(prop, generator, originalValues, mutation_range){
     var l = prop.length || 1;
     var max = prop.max || 10;
+    var factor = (prop.factor || 1) * mutation_range
     var values = [];
     for(var i = 0; i < l; i++){
       var nextVal;
@@ -54,7 +58,7 @@ const random = {
           { min: 0, range: max },
           generator,
           [originalValues[i]],
-          mutation_range
+          factor
         )[0];
       } while(values.indexOf(nextVal) > -1);
       values.push(nextVal)
@@ -62,25 +66,27 @@ const random = {
     return values;
   },
   mutateIntegers(prop, generator, originalValues, mutation_range){
+    var factor = (prop.factor || 1) * mutation_range
     prop = {
       min: prop.min || 0,
       range: prop.range || 10
     }
     return random.mutateFloats(
-      prop, generator, originalValues, mutation_range
+      prop, generator, originalValues, factor
     ).map(function(float){
       return Math.round(float);
     })
   },
   mutateFloats(prop, generator, originalValues, mutation_range){
+    var factor = (prop.factor || 1) * mutation_range
     prop = {
       min: prop.min || 0,
       range: prop.range || 1
     }
-    console.log(arguments);
+    // console.log(arguments);
     return originalValues.map(function(originalValue){
       return mutateFloat(
-        prop, generator, originalValue, mutation_range
+        prop, generator, originalValue, factor
       );
     });
   },

@@ -1,77 +1,46 @@
+/*
+  globals b2RevoluteJointDef b2Vec2 b2BodyDef b2Body b2FixtureDef b2PolygonShape b2CircleShape
+*/
+module.exports = defToCar;
 
-module.exports = {
-  generateSchema: function(values){
-    return {
-      wheel_radius: {
-        type: "float",
-        length: values.wheelCount,
-        min: values.wheelMinRadius,
-        range: values.wheelRadiusRange,
-      },
-      wheel_density: {
-        type: "float",
-        length: values.wheelCount,
-        min: values.wheelMinDensity,
-        range: values.wheelDensityRange,
-      },
-      chassis_density: {
-        type: "float",
-        length: 1,
-        min: values.chassisDensityRange,
-        range: values.chassisMinDensity,
-      },
-      vertex_list: {
-        type: "float",
-        length: 12,
-        min: values.chassisMinAxis,
-        range: values.chassisAxisRange
-      },
-      wheel_vertex: {
-        type: "shuffle",
-        max: 7,
-        length: 2
-      },
-    };
-  },
-  createCar: function(world, car_def, constants){
-    var instance = {};
-    instance.chassis = createChassis(
-      world, car_def.vertex_list, car_def.chassis_density
+function defToCar(car_def, world, constants){
+  var instance = {};
+  instance.chassis = createChassis(
+    world, car_def.vertex_list, car_def.chassis_density
+  );
+  var i;
+
+  var wheelCount = car_def.wheel_radius.length;
+
+  instance.wheels = [];
+  for (i = 0; i < wheelCount; i++) {
+    instance.wheels[i] = createWheel(
+      world, car_def.wheel_radius[i], car_def.wheel_density[i]
     );
-    var i;
-
-    var wheelCount = car_def.wheel_radius.length;
-
-    instance.wheels = [];
-    for (i = 0; i < wheelCount; i++) {
-      instance.wheels[i] = createWheel(
-        world, car_def.wheel_radius[i], car_def.wheel_density[i]
-      );
-    }
-
-    var carmass = instance.chassis.GetMass();
-    for (i = 0; i < wheelCount; i++) {
-      carmass += instance.wheels[i].GetMass();
-    }
-
-    var joint_def = new b2RevoluteJointDef();
-
-    for (i = 0; i < wheelCount; i++) {
-      var torque = carmass * -constants.gravity.y / car_def.wheel_radius[i];
-
-      var randvertex = instance.chassis.vertex_list[car_def.wheel_vertex[i]];
-      joint_def.localAnchorA.Set(randvertex.x, randvertex.y);
-      joint_def.localAnchorB.Set(0, 0);
-      joint_def.maxMotorTorque = torque;
-      joint_def.motorSpeed = -constants.motorSpeed;
-      joint_def.enableMotor = true;
-      joint_def.bodyA = instance.chassis;
-      joint_def.bodyB = instance.wheels[i];
-      var joint = world.CreateJoint(joint_def);
-    }
-
-    return instance;
   }
+
+  var carmass = instance.chassis.GetMass();
+  for (i = 0; i < wheelCount; i++) {
+    carmass += instance.wheels[i].GetMass();
+  }
+
+  var joint_def = new b2RevoluteJointDef();
+
+  for (i = 0; i < wheelCount; i++) {
+    var torque = carmass * -constants.gravity.y / car_def.wheel_radius[i];
+
+    var randvertex = instance.chassis.vertex_list[car_def.wheel_vertex[i]];
+    joint_def.localAnchorA.Set(randvertex.x, randvertex.y);
+    joint_def.localAnchorB.Set(0, 0);
+    joint_def.maxMotorTorque = torque;
+    joint_def.motorSpeed = -constants.motorSpeed;
+    joint_def.enableMotor = true;
+    joint_def.bodyA = instance.chassis;
+    joint_def.bodyB = instance.wheels[i];
+    world.CreateJoint(joint_def);
+  }
+
+  return instance;
 }
 
 function createChassis(world, vertexs, density) {
