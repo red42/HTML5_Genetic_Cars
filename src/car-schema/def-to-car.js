@@ -4,7 +4,9 @@
 module.exports = defToCar;
 
 function defToCar(car_def, world, constants){
+  console.log(constants);
   var instance = {};
+  console.log(world, car_def.vertex_list, car_def.chassis_density)
   instance.chassis = createChassis(
     world, car_def.vertex_list, car_def.chassis_density
   );
@@ -14,8 +16,15 @@ function defToCar(car_def, world, constants){
 
   instance.wheels = [];
   for (i = 0; i < wheelCount; i++) {
+    console.log(
+      world,
+      car_def.wheel_radius[i],
+      car_def.wheel_density[i]
+    );
     instance.wheels[i] = createWheel(
-      world, car_def.wheel_radius[i], car_def.wheel_density[i]
+      world,
+      car_def.wheel_radius[i],
+      car_def.wheel_density[i]
     );
   }
 

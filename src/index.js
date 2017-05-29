@@ -3,10 +3,7 @@
 // Global Vars
 
 var worldRun = require("./world/run.js");
-var setupScene = require("./world/setup-scene.js");
-
 var carConstruct = require("./car-schema/construct.js");
-var defToCar = require("./car-schema/def-to-car.js");
 var run = require("./car-schema/run.js");
 
 var manageRound = require("./machine-learning/genetic-algorithm/manage-round.js");
@@ -20,7 +17,7 @@ var cw_clearGraphics = graph_fns.clearGraphics;
 var cw_drawFloor = require("./draw/draw-floor.js");
 
 var ghost_draw_frame = ghost_fns.ghost_draw_frame;
-var ghost_create_replay = ghost_fns.ghost_create_replay;
+// var ghost_create_refplay = ghost_fns.ghost_create_replay;
 var ghost_create_ghost = ghost_fns.ghost_create_ghost;
 var ghost_add_replay_frame = ghost_fns.ghost_add_replay_frame;
 var ghost_compare_to_replay = ghost_fns.ghost_compare_to_replay;
@@ -29,6 +26,7 @@ var ghost_move_frame = ghost_fns.ghost_move_frame;
 var ghost_reset_ghost = ghost_fns.ghost_reset_ghost
 var ghost_pause = ghost_fns.ghost_pause;
 var ghost_resume = ghost_fns.ghost_resume;
+var ghost_create_replay = ghost_fns.ghost_create_replay;
 
 var ghost;
 
@@ -71,8 +69,6 @@ var schema = carConstruct.generateSchema(carConstants);
 
 var max_car_health = box2dfps * 10;
 
-var motorSpeed = 20;
-
 var cw_ghostReplayInterval = null;
 
 var distanceMeter = document.getElementById("distancemeter");
@@ -96,7 +92,9 @@ var world_def = {
   tileDimensions: new b2Vec2(1.5, 0.15),
   maxFloorTiles: 200,
   mutable_floor: false,
-  box2dfps: box2dfps
+  box2dfps: box2dfps,
+  motorSpeed: 20,
+  max_car_health: max_car_health
 }
 
 var cw_deadCars;
@@ -147,6 +145,7 @@ function showDistance(distance, height) {
   }
 }
 
+var carMap = new Map();
 /* ========================================================================= */
 /* === Car ================================================================= */
 var cw_Car = function () {
@@ -154,6 +153,7 @@ var cw_Car = function () {
 }
 
 cw_Car.prototype.__constructor = function (car) {
+  carMap.set(car, this);
   this.car = car;
   this.car_def = car.def;
   var car_def = this.car_def;
@@ -181,10 +181,11 @@ cw_Car.prototype.__constructor = function (car) {
 }
 
 cw_Car.prototype.getPosition = function () {
-  return this.constructedCar.chassis.GetPosition();
+  return this.car.car.chassis.GetPosition();
 }
 
 cw_Car.prototype.kill = function () {
+  carMap.delete(this.car);
   switch(this.getStatus()){
     case 1: {
       this.healthBar.width = "0";
@@ -417,20 +418,26 @@ var uiListeners = {
   preCarStep: function(){
     ghost_move_frame(ghost);
   },
-  carStep(car, state, status, k){
-    updateCarUI(car, k);
+  carStep(car, k){
+    updateCarUI(carMap.get(car), k);
   },
-  carDeath(car, state, score){
-    car.kill();
+  carDeath(carInfo, k){
+    var car = carInfo.car, score = carInfo.score;
+    carMap.get(carInfo).kill();
     // console.log(score);
     ghost_compare_to_replay(car.replay, ghost, score.v);
     score.i = generationState.counter;
     cw_carScores.push({
-      def: car.car_def,
+      def: carInfo.def,
       score: score
     });
 
     cw_deadCars++;
+    console.log(leaderPosition, k)
+    if (leaderPosition.leader == k) {
+      // leader is dead, find new leader
+      cw_findLeader();
+    }
   },
   generationEnd(){
     cleanupRound();
@@ -449,9 +456,9 @@ function simulationStep() {
 function updateCarUI(car, k){
   var position = car.getPosition();
 
-  ghost_add_replay_frame(car.replay, car.constructedCar);
+  ghost_add_replay_frame(car.replay, car.car.car);
   car.minimapmarker.style.left = Math.round((position.x + 5) * minimapscale) + "px";
-  car.healthBar.width = Math.round((car.state.health / max_car_health) * 100) + "%";
+  car.healthBar.width = Math.round((car.car.state.health / max_car_health) * 100) + "%";
   var status = car.getStatus();
   if(status === 0){
     if (position.x > leaderPosition.x) {
@@ -520,6 +527,9 @@ function cw_newRound() {
     ghost_reset_ghost(ghost);
   }
   currentRunner = worldRun(world_def, generationState.generation, uiListeners);
+  cw_carArray = currentRunner.cars.map(function(car){
+    return new cw_Car(car);
+  })
   cw_drawMiniMap();
   resetCarUI();
 }
@@ -552,6 +562,10 @@ function cw_resetWorld() {
   Math.seedrandom();
   cw_resetPopulation();
   currentRunner = worldRun(world_def, generationState.generation, uiListeners);
+  cw_carArray = currentRunner.cars.map(function(car){
+    return new cw_Car(car);
+  })
+
   cw_drawMiniMap();
   cw_startSimulation();
 }
@@ -687,9 +701,13 @@ function cw_init() {
   mmm.parentNode.removeChild(mmm);
   hbar.parentNode.removeChild(hbar);
   world_def.floorseed = btoa(Math.seedrandom());
-  currentScene = setupScene(world_def);
-  cw_drawMiniMap();
   cw_generationZero();
+  currentRunner = worldRun(world_def, generationState.generation, uiListeners);
+  cw_carArray = currentRunner.cars.map(function(car){
+    return new cw_Car(car);
+  })
+
+  cw_drawMiniMap();
   cw_runningInterval = setInterval(simulationStep, Math.round(1000 / box2dfps));
   cw_drawInterval = setInterval(cw_drawScreen, Math.round(1000 / screenfps));
 }
@@ -784,7 +802,7 @@ function cw_setMutableFloor(choice) {
 
 function cw_setGravity(choice) {
   world_def.gravity = new b2Vec2(0.0, -parseFloat(choice));
-  var world = currentScene.world
+  var world = currentRunner.scene.world
   // CHECK GRAVITY CHANGES
   if (world.GetGravity().y != world_def.gravity.y) {
     world.SetGravity(world_def.gravity);

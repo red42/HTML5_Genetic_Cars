@@ -39,6 +39,7 @@ function updateState(constants, worldConstruct, state){
   if (position.x > constants.finishLine) {
     return nextState;
   }
+
   if (position.x > state.maxPositionx + 0.02) {
     nextState.health = constants.max_car_health;
     return nextState;
@@ -64,7 +65,6 @@ function hasSuccess(state, constants){
 }
 
 function calculateScore(state, constants){
-  console.log(state);
   var avgspeed = (state.maxPositionx / state.frames) * constants.box2dfps;
   var position = state.maxPositionx;
   var score = position + avgspeed;

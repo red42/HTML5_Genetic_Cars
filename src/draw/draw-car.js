@@ -22,7 +22,7 @@ module.exports = function(car_constants, myCar, camera, ctx){
   ctx.strokeStyle = "#444";
   ctx.lineWidth = 1 / zoom;
 
-  var wheels = myCar.constructedCar.wheels;
+  var wheels = myCar.car.car.wheels;
 
   for (var i = 0; i < wheels.length; i++) {
     var b = wheels[i];
@@ -43,7 +43,7 @@ module.exports = function(car_constants, myCar, camera, ctx){
   }
   ctx.beginPath();
 
-  var chassis = myCar.constructedCar.chassis;
+  var chassis = myCar.car.car.chassis;
 
   for (f = chassis.GetFixtureList(); f; f = f.m_next) {
     var cs = f.GetShape();

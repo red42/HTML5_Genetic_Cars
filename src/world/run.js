@@ -6,6 +6,8 @@ module.exports = runDefs;
 function runDefs(world_def, defs, listeners){
 
   var scene = setupScene(world_def);
+  scene.world.Step(1 / world_def.box2dfps, 20, 20);
+  console.log("about to build cars");
   var cars = defs.map((def)=> {
     return {
       def: def,
@@ -28,12 +30,12 @@ function runDefs(world_def, defs, listeners){
           world_def, car.car, car.state
         );
         var status = carRun.getStatus(car.state, world_def);
-        listeners.carStep(car.car, car.state, status, i);
+        listeners.carStep(car, i);
         if(status === 0){
           return true;
         }
         car.score = carRun.calculateScore(car.state, world_def);
-        listeners.carDeath(car.car, car.state, car.score, i);
+        listeners.carDeath(car, i);
 
         var world = scene.world;
         var worldCar = car.car;

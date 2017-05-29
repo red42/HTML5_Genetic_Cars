@@ -37,8 +37,8 @@ function nextGeneration(
   var newborn;
   for (var k = 0; k < champion_length; k++) {``
     scores[k].def.is_elite = true;
-    previousGeneration[k].def.index = k;
-    newGeneration.push(previousGeneration[k].def);
+    previousGeneration[k].index = k;
+    newGeneration.push(previousGeneration[k]);
   }
   for (k = champion_length; k < generationSize; k++) {
     var parent1 = selectFromAllParents(previousGeneration.length);
@@ -52,7 +52,7 @@ function nextGeneration(
         scores[parent2].def
       ]
     );
-    newborn = mutate(config, previousState, newborn);
+    newborn = mutate(config, newborn);
     newborn.is_elite = false;
     newborn.index = k;
     newGeneration.push(newborn);
