@@ -4,7 +4,6 @@
 
 var worldRun = require("./world/run.js");
 var carConstruct = require("./car-schema/construct.js");
-var run = require("./car-schema/run.js");
 
 var manageRound = require("./machine-learning/genetic-algorithm/manage-round.js");
 
@@ -26,8 +25,8 @@ var ghost_move_frame = ghost_fns.ghost_move_frame;
 var ghost_reset_ghost = ghost_fns.ghost_reset_ghost
 var ghost_pause = ghost_fns.ghost_pause;
 var ghost_resume = ghost_fns.ghost_resume;
-var ghost_create_replay = ghost_fns.ghost_create_replay;
 
+var cw_Car = require("./draw/draw-car-stats.js");
 var ghost;
 
 var doDraw = true;
@@ -74,9 +73,9 @@ var cw_ghostReplayInterval = null;
 var distanceMeter = document.getElementById("distancemeter");
 var heightMeter = document.getElementById("heightmeter");
 
-var leaderPosition = new Object();
-leaderPosition.x = 0;
-leaderPosition.y = 0;
+var leaderPosition = {
+  x: 0, y: 0
+}
 
 minimapcamera.width = 12 * minimapscale + "px";
 minimapcamera.height = 6 * minimapscale + "px";
@@ -145,74 +144,6 @@ function showDistance(distance, height) {
   }
 }
 
-var carMap = new Map();
-/* ========================================================================= */
-/* === Car ================================================================= */
-var cw_Car = function () {
-  this.__constructor.apply(this, arguments);
-}
-
-cw_Car.prototype.__constructor = function (car) {
-  carMap.set(car, this);
-  this.car = car;
-  this.car_def = car.def;
-  var car_def = this.car_def;
-
-  this.frames = 0;
-  this.alive = true;
-  this.is_elite = car.def.is_elite;
-  this.healthBar = document.getElementById("health" + car_def.index).style;
-  this.healthBarText = document.getElementById("health" + car_def.index).nextSibling.nextSibling;
-  this.healthBarText.innerHTML = car_def.index;
-  this.minimapmarker = document.getElementById("bar" + car_def.index);
-
-  if (this.is_elite) {
-    this.healthBar.backgroundColor = "#3F72AF";
-    this.minimapmarker.style.borderLeft = "1px solid #3F72AF";
-    this.minimapmarker.innerHTML = car_def.index;
-  } else {
-    this.healthBar.backgroundColor = "#F7C873";
-    this.minimapmarker.style.borderLeft = "1px solid #F7C873";
-    this.minimapmarker.innerHTML = car_def.index;
-  }
-
-  this.replay = ghost_create_replay();
-  ghost_add_replay_frame(this.replay, this.car.car);
-}
-
-cw_Car.prototype.getPosition = function () {
-  return this.car.car.chassis.GetPosition();
-}
-
-cw_Car.prototype.kill = function () {
-  carMap.delete(this.car);
-  switch(this.getStatus()){
-    case 1: {
-      this.healthBar.width = "0";
-      break
-    }
-    case -1: {
-      this.healthBarText.innerHTML = "&dagger;";
-      this.healthBar.width = "0";
-      break
-    }
-  }
-  this.alive = false;
-
-  // refocus camera to leader on death
-  if (camera.target == this.car_def.index) {
-    cw_setCameraTarget(-1);
-  }
-}
-
-cw_Car.prototype.getStatus = function () {
-  // check health
-  var finishLine = currentRunner.scene.finishLine
-  return run.getStatus(this.car.state, {
-    finishLine: finishLine,
-    max_car_health: max_car_health,
-  })
-}
 
 
 /* === END Car ============================================================= */
@@ -231,9 +162,9 @@ function cw_generationZero() {
 
 function resetCarUI(){
   cw_deadCars = 0;
-  leaderPosition = new Object();
-  leaderPosition.x = 0;
-  leaderPosition.y = 0;
+  leaderPosition = {
+    x: 0, y: 0
+  };
   document.getElementById("generation").innerHTML = generationState.counter.toString();
   document.getElementById("cars").innerHTML = "";
   document.getElementById("population").innerHTML = generationConfig.generationSize.toString();
@@ -307,12 +238,12 @@ function pickParent(currentChoices, chooseId, key /* , parents */){
 
 function cw_drawScreen() {
   var floorTiles = currentRunner.scene.floorTiles;
-  var camera_x = camera.pos.x;
-  var camera_y = camera.pos.y;
-  var zoom = camera.zoom;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.save();
   cw_setCameraPosition();
+  var camera_x = camera.pos.x;
+  var camera_y = camera.pos.y;
+  var zoom = camera.zoom;
   ctx.translate(200 - (camera_x * zoom), 200 + (camera_y * zoom));
   ctx.scale(zoom, -zoom);
   cw_drawFloor(ctx, camera, floorTiles);
@@ -352,10 +283,16 @@ function cw_drawGhostReplay() {
   camera.pos.x = carPosition.x;
   camera.pos.y = carPosition.y;
   cw_minimapCamera(camera.pos.x, camera.pos.y);
-  showDistance(Math.round(carPosition.x * 100) / 100, Math.round(carPosition.y * 100) / 100);
+  showDistance(
+    Math.round(carPosition.x * 100) / 100,
+    Math.round(carPosition.y * 100) / 100
+  );
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.save();
-  ctx.translate(200 - (carPosition.x * camera.zoom), 200 + (carPosition.y * camera.zoom));
+  ctx.translate(
+    200 - (carPosition.x * camera.zoom),
+    200 + (carPosition.y * camera.zoom)
+  );
   ctx.scale(camera.zoom, -camera.zoom);
   ghost_draw_frame(ctx, ghost);
   ghost_move_frame(ghost);
@@ -411,6 +348,7 @@ function cw_drawMiniMap() {
   }
   minimapctx.stroke();
 }
+var carMap = new Map();
 
 /* ==== END Drawing ======================================================== */
 /* ========================================================================= */
@@ -418,22 +356,35 @@ var uiListeners = {
   preCarStep: function(){
     ghost_move_frame(ghost);
   },
-  carStep(car, k){
-    updateCarUI(carMap.get(car), k);
+  carStep(car){
+    updateCarUI(car);
   },
-  carDeath(carInfo, k){
+  carDeath(carInfo){
+
+    var k = carInfo.index;
+
     var car = carInfo.car, score = carInfo.score;
-    carMap.get(carInfo).kill();
+    carMap.get(carInfo).kill(currentRunner, world_def);
+
+    // refocus camera to leader on death
+    if (camera.target == k) {
+      cw_setCameraTarget(-1);
+    }
     // console.log(score);
     ghost_compare_to_replay(car.replay, ghost, score.v);
     score.i = generationState.counter;
+    console.log(score);
     cw_carScores.push({
       def: carInfo.def,
       score: score
     });
 
     cw_deadCars++;
-    console.log(leaderPosition, k)
+    var generationSize = generationConfig.generationSize;
+    document.getElementById("population").innerHTML = (generationSize - cw_deadCars).toString();
+    cw_carArray[k].minimapmarker.style.borderLeft = "1px solid #3F72AF";
+
+    console.log(leaderPosition.leader, k)
     if (leaderPosition.leader == k) {
       // leader is dead, find new leader
       cw_findLeader();
@@ -453,26 +404,18 @@ function simulationStep() {
   );
 }
 
-function updateCarUI(car, k){
+function updateCarUI(carInfo){
+  var k = carInfo.index;
+  var car = carMap.get(carInfo);
   var position = car.getPosition();
 
   ghost_add_replay_frame(car.replay, car.car.car);
   car.minimapmarker.style.left = Math.round((position.x + 5) * minimapscale) + "px";
   car.healthBar.width = Math.round((car.car.state.health / max_car_health) * 100) + "%";
-  var status = car.getStatus();
-  if(status === 0){
-    if (position.x > leaderPosition.x) {
-      leaderPosition = position;
-      leaderPosition.leader = k;
-    }
-    return;
-  }
-  var generationSize = generationConfig.generationSize;
-  document.getElementById("population").innerHTML = (generationSize - cw_deadCars).toString();
-  cw_carArray[k].minimapmarker.style.borderLeft = "1px solid #3F72AF";
-  if (leaderPosition.leader == k) {
-    // leader is dead, find new leader
-    cw_findLeader();
+  if (position.x > leaderPosition.x) {
+    leaderPosition = position;
+    leaderPosition.leader = k;
+    console.log("new leader: ", k);
   }
 }
 
@@ -528,7 +471,7 @@ function cw_newRound() {
   }
   currentRunner = worldRun(world_def, generationState.generation, uiListeners);
   cw_carArray = currentRunner.cars.map(function(car){
-    return new cw_Car(car);
+    return new cw_Car(car, carMap);
   })
   cw_drawMiniMap();
   resetCarUI();
@@ -563,7 +506,7 @@ function cw_resetWorld() {
   cw_resetPopulation();
   currentRunner = worldRun(world_def, generationState.generation, uiListeners);
   cw_carArray = currentRunner.cars.map(function(car){
-    return new cw_Car(car);
+    return new cw_Car(car, carMap);
   })
 
   cw_drawMiniMap();
@@ -704,7 +647,7 @@ function cw_init() {
   cw_generationZero();
   currentRunner = worldRun(world_def, generationState.generation, uiListeners);
   cw_carArray = currentRunner.cars.map(function(car){
-    return new cw_Car(car);
+    return new cw_Car(car, carMap);
   })
 
   cw_drawMiniMap();

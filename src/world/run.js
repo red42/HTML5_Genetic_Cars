@@ -8,8 +8,9 @@ function runDefs(world_def, defs, listeners){
   var scene = setupScene(world_def);
   scene.world.Step(1 / world_def.box2dfps, 20, 20);
   console.log("about to build cars");
-  var cars = defs.map((def)=> {
+  var cars = defs.map((def, i)=> {
     return {
+      index: i,
       def: def,
       car: defToCar(def, scene.world, world_def),
       state: carRun.getInitialState(world_def)
@@ -25,17 +26,17 @@ function runDefs(world_def, defs, listeners){
       }
       scene.world.Step(1 / world_def.box2dfps, 20, 20);
       listeners.preCarStep();
-      alivecars = alivecars.filter(function(car, i){
+      alivecars = alivecars.filter(function(car){
         car.state = carRun.updateState(
           world_def, car.car, car.state
         );
         var status = carRun.getStatus(car.state, world_def);
-        listeners.carStep(car, i);
+        listeners.carStep(car);
         if(status === 0){
           return true;
         }
         car.score = carRun.calculateScore(car.state, world_def);
-        listeners.carDeath(car, i);
+        listeners.carDeath(car);
 
         var world = scene.world;
         var worldCar = car.car;
