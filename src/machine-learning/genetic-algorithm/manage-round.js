@@ -1,4 +1,4 @@
-var create = require("./create-instance");
+var create = require("../create-instance");
 
 module.exports = {
   generationZero: generationZero,
@@ -31,26 +31,24 @@ function nextGeneration(
     generationSize = config.generationSize,
     selectFromAllParents = config.selectFromAllParents;
 
-  var previousGeneration = previousState.generation
-
   var newGeneration = new Array();
   var newborn;
   for (var k = 0; k < champion_length; k++) {``
     scores[k].def.is_elite = true;
-    previousGeneration[k].index = k;
-    newGeneration.push(previousGeneration[k]);
+    scores[k].def.index = k;
+    newGeneration.push(scores[k].def);
   }
+  var parentList = [];
   for (k = champion_length; k < generationSize; k++) {
-    var parent1 = selectFromAllParents(previousGeneration.length);
+    var parent1 = selectFromAllParents(scores, parentList);
     var parent2 = parent1;
     while (parent2 == parent1) {
-      parent2 = selectFromAllParents(previousGeneration.length);
+      parent2 = selectFromAllParents(scores, parentList, parent1);
     }
+    var pair = [parent1, parent2]
+    parentList.push(pair);
     newborn = makeChild(config,
-      [
-        scores[parent1].def,
-        scores[parent2].def
-      ]
+      pair.map(function(parent) { return scores[parent].def; })
     );
     newborn = mutate(config, newborn);
     newborn.is_elite = false;
@@ -81,6 +79,7 @@ function mutate(config, parent){
     schema,
     generateRandom,
     parent,
-    Math.max(mutation_range, gen_mutation)
+    Math.max(mutation_range),
+    gen_mutation
   )
 }

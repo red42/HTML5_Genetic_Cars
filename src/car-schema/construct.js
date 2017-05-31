@@ -62,7 +62,7 @@ function generateSchema(values){
       type: "shuffle",
       max: 7,
       length: 2,
-      factor: 0.5,
+      factor: 1,
     },
   };
 }

@@ -1,7 +1,8 @@
 /* globals document */
 
 module.exports = {
-  plotGraphs: function(lastState, scores, generationSize) {
+  plotGraphs: function(lastState, scores) {
+    var generationSize = scores.length
     var graphcanvas = document.getElementById("graphcanvas");
     var graphctx = graphcanvas.getContext("2d");
     var graphwidth = 400;
@@ -125,7 +126,7 @@ function cw_listTopScores(state) {
 
   for (var k = 0; k < Math.min(10, cw_topScores.length); k++) {
     var topScore = cw_topScores[k];
-    console.log(topScore);
+    // console.log(topScore);
     var n = "#" + (k + 1) + ":";
     var score = Math.round(topScore.v * 100) / 100;
     var distance = "d:" + Math.round(topScore.x * 100) / 100;

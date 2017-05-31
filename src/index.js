@@ -16,7 +16,6 @@ var cw_clearGraphics = graph_fns.clearGraphics;
 var cw_drawFloor = require("./draw/draw-floor.js");
 
 var ghost_draw_frame = ghost_fns.ghost_draw_frame;
-// var ghost_create_refplay = ghost_fns.ghost_create_replay;
 var ghost_create_ghost = ghost_fns.ghost_create_ghost;
 var ghost_add_replay_frame = ghost_fns.ghost_add_replay_frame;
 var ghost_compare_to_replay = ghost_fns.ghost_compare_to_replay;
@@ -25,9 +24,11 @@ var ghost_move_frame = ghost_fns.ghost_move_frame;
 var ghost_reset_ghost = ghost_fns.ghost_reset_ghost
 var ghost_pause = ghost_fns.ghost_pause;
 var ghost_resume = ghost_fns.ghost_resume;
+var ghost_create_replay = ghost_fns.ghost_create_replay;
 
 var cw_Car = require("./draw/draw-car-stats.js");
 var ghost;
+var carMap = new Map();
 
 var doDraw = true;
 var cw_paused = false;
@@ -56,15 +57,9 @@ var minimapscale = 3;
 var minimapfogdistance = 0;
 var fogdistance = document.getElementById("minimapfog").style;
 
-var cw_carArray = new Array();
-
-var cw_carScores = new Array();
-
-
 
 var carConstants = carConstruct.carConstants();
 
-var schema = carConstruct.generateSchema(carConstants);
 
 var max_car_health = box2dfps * 10;
 
@@ -113,18 +108,8 @@ function resetGraphState(){
   };
 }
 
+var generationConfig = require("./generation-config");
 
-var nAttributes = 15;
-var generationConfig = {
-  generationSize: 20,
-  schema: schema,
-  championLength: 1,
-  mutation_range: 1,
-  gen_mutation: 0.05,
-  selectFromAllParents: cw_getParents,
-  generateRandom: generateRandom,
-  pickParent: pickParent
-}
 
 // ==========================
 
@@ -155,9 +140,7 @@ function showDistance(distance, height) {
 
 function cw_generationZero() {
 
-  generationState = manageRound.generationZero(generationConfig);
-  ghost = ghost_create_ghost();
-  resetCarUI();
+  generationState = manageRound.generationZero(generationConfig());
 }
 
 function resetCarUI(){
@@ -167,67 +150,7 @@ function resetCarUI(){
   };
   document.getElementById("generation").innerHTML = generationState.counter.toString();
   document.getElementById("cars").innerHTML = "";
-  document.getElementById("population").innerHTML = generationConfig.generationSize.toString();
-}
-
-function generateRandom(){
-  return Math.random();
-}
-
-function cw_getParents(totalParents) {
-  var r = Math.random();
-  if (r == 0)
-    return 0;
-  return Math.floor(-Math.log(r) * totalParents) % totalParents;
-}
-
-function pickParent(currentChoices, chooseId, key /* , parents */){
-  if(!currentChoices.has(chooseId)){
-    currentChoices.set(chooseId, initializePick())
-  }
-  var state = currentChoices.get(chooseId);
-  state.i++
-  if(["wheel_radius", "wheel_vertex", "wheel_density"].indexOf(key) > -1){
-    state.curparent = cw_chooseParent(state);
-    return state.curparent;
-  }
-  state.curparent = cw_chooseParent(state);
-  return state.curparent;
-
-  function cw_chooseParent(state) {
-    var curparent = state.curparent;
-    var attributeIndex = state.i;
-    var swapPoint1 = state.swapPoint1
-    var swapPoint2 = state.swapPoint2
-    var ret;
-    if ((swapPoint1 == attributeIndex) || (swapPoint2 == attributeIndex)) {
-      if (curparent == 1) {
-        ret = 0;
-      } else {
-        ret = 1;
-      }
-    } else {
-      ret = curparent;
-    }
-    return ret;
-  }
-
-  function initializePick(){
-    var curparent = 0;
-
-    var swapPoint1 = Math.round(Math.random() * (nAttributes - 1));
-    var swapPoint2 = swapPoint1;
-    while (swapPoint2 == swapPoint1) {
-      swapPoint2 = Math.round(Math.random() * (nAttributes - 1));
-    }
-    var i = 0;
-    return {
-      curparent: curparent,
-      i: i,
-      swapPoint1: swapPoint1,
-      swapPoint2: swapPoint2
-    }
-  }
+  document.getElementById("population").innerHTML = generationConfig.constants.generationSize.toString();
 }
 
 /* ==== END Genration ====================================================== */
@@ -265,8 +188,8 @@ function cw_setCameraTarget(k) {
 
 function cw_setCameraPosition() {
   var cameraTargetPosition
-  if (camera.target >= 0) {
-    cameraTargetPosition = cw_carArray[camera.target].getPosition();
+  if (camera.target !== -1) {
+    cameraTargetPosition = carMap.get(camera.target).getPosition();
   } else {
     cameraTargetPosition = leaderPosition;
   }
@@ -302,6 +225,7 @@ function cw_drawGhostReplay() {
 
 
 function cw_drawCars() {
+  var cw_carArray = Array.from(carMap.values());
   for (var k = (cw_carArray.length - 1); k >= 0; k--) {
     var myCar = cw_carArray[k];
     drawCar(carConstants, myCar, camera, ctx)
@@ -348,7 +272,6 @@ function cw_drawMiniMap() {
   }
   minimapctx.stroke();
 }
-var carMap = new Map();
 
 /* ==== END Drawing ======================================================== */
 /* ========================================================================= */
@@ -367,34 +290,28 @@ var uiListeners = {
     carMap.get(carInfo).kill(currentRunner, world_def);
 
     // refocus camera to leader on death
-    if (camera.target == k) {
+    if (camera.target == carInfo) {
       cw_setCameraTarget(-1);
     }
     // console.log(score);
+    carMap.delete(carInfo);
     ghost_compare_to_replay(car.replay, ghost, score.v);
     score.i = generationState.counter;
-    console.log(score);
-    cw_carScores.push({
-      def: carInfo.def,
-      score: score
-    });
 
     cw_deadCars++;
-    var generationSize = generationConfig.generationSize;
+    var generationSize = generationConfig.constants.generationSize;
     document.getElementById("population").innerHTML = (generationSize - cw_deadCars).toString();
-    cw_carArray[k].minimapmarker.style.borderLeft = "1px solid #3F72AF";
 
-    console.log(leaderPosition.leader, k)
+    // console.log(leaderPosition.leader, k)
     if (leaderPosition.leader == k) {
       // leader is dead, find new leader
       cw_findLeader();
     }
   },
-  generationEnd(){
-    cleanupRound();
-    return cw_newRound();
+  generationEnd(results){
+    cleanupRound(results);
+    return cw_newRound(results);
   }
-
 }
 function simulationStep() {
   currentRunner.step();
@@ -415,12 +332,13 @@ function updateCarUI(carInfo){
   if (position.x > leaderPosition.x) {
     leaderPosition = position;
     leaderPosition.leader = k;
-    console.log("new leader: ", k);
+    // console.log("new leader: ", k);
   }
 }
 
 function cw_findLeader() {
   var lead = 0;
+  var cw_carArray = Array.from(carMap.values());
   for (var k = 0; k < cw_carArray.length; k++) {
     if (!cw_carArray[k].alive) {
       continue;
@@ -433,10 +351,16 @@ function cw_findLeader() {
   }
 }
 
-function cleanupRound(){
-  var generationSize = generationConfig.generationSize;
+function fastForward(){
+  var gen = generationState.counter;
+  while(gen === generationState.counter){
+    currentRunner.step();
+  }
+}
 
-  cw_carScores.sort(function (a, b) {
+function cleanupRound(results){
+
+  results.sort(function (a, b) {
     if (a.score.v > b.score.v) {
       return -1
     } else {
@@ -444,22 +368,16 @@ function cleanupRound(){
     }
   })
   graphState = plot_graphs(
-    graphState, cw_carScores, generationSize
+    graphState, results
   );
 }
 
-function cw_newRound() {
+function cw_newRound(results) {
   camera.pos.x = camera.pos.y = 0;
   cw_setCameraTarget(-1);
 
-
-
-  var currentChoices = new Map();
-  generationConfig.pickParent = pickParent.bind(void 0, currentChoices);
-
-
   generationState = manageRound.nextGeneration(
-    generationState, cw_carScores, generationConfig
+    generationState, results, generationConfig()
   );
   if (world_def.mutable_floor) {
     // GHOST DISABLED
@@ -470,9 +388,7 @@ function cw_newRound() {
     ghost_reset_ghost(ghost);
   }
   currentRunner = worldRun(world_def, generationState.generation, uiListeners);
-  cw_carArray = currentRunner.cars.map(function(car){
-    return new cw_Car(car, carMap);
-  })
+  setupCarUI();
   cw_drawMiniMap();
   resetCarUI();
 }
@@ -487,32 +403,47 @@ function cw_stopSimulation() {
   clearInterval(cw_drawInterval);
 }
 
-function cw_resetPopulation() {
+function cw_resetPopulationUI() {
   document.getElementById("generation").innerHTML = "";
   document.getElementById("cars").innerHTML = "";
   document.getElementById("topscores").innerHTML = "";
   cw_clearGraphics();
-  cw_carArray = new Array();
-  cw_carScores = new Array();
   resetGraphState();
-  cw_generationZero();
 }
 
 function cw_resetWorld() {
   doDraw = true;
   cw_stopSimulation();
   world_def.floorseed = document.getElementById("newseed").value;
-  Math.seedrandom();
-  cw_resetPopulation();
-  currentRunner = worldRun(world_def, generationState.generation, uiListeners);
-  cw_carArray = currentRunner.cars.map(function(car){
-    return new cw_Car(car, carMap);
-  })
+  cw_resetPopulationUI();
 
+  Math.seedrandom();
+  cw_generationZero();
+  currentRunner = worldRun(
+    world_def, generationState.generation, uiListeners
+  );
+
+  ghost = ghost_create_ghost();
+  resetCarUI();
+  setupCarUI()
   cw_drawMiniMap();
+
   cw_startSimulation();
 }
 
+function setupCarUI(){
+  currentRunner.cars.map(function(carInfo){
+    var car = new cw_Car(carInfo, carMap);
+    carMap.set(carInfo, car);
+    car.replay = ghost_create_replay();
+    ghost_add_replay_frame(car.replay, car.car.car);
+  })
+}
+
+
+document.querySelector("#fast-forward").addEventListener("click", function(){
+  fastForward()
+});
 
 document.querySelector("#save-progress").addEventListener("click", function(){
   saveProgress()
@@ -527,7 +458,10 @@ document.querySelector("#toggle-display").addEventListener("click", function(){
 })
 
 document.querySelector("#new-population").addEventListener("click", function(){
-  cw_resetPopulation()
+  cw_resetPopulationUI()
+  cw_generationZero();
+  ghost = ghost_create_ghost();
+  resetCarUI();
 })
 
 function saveProgress() {
@@ -625,7 +559,7 @@ function cw_init() {
   // clone silver dot and health bar
   var mmm = document.getElementsByName('minimapmarker')[0];
   var hbar = document.getElementsByName('healthbar')[0];
-  var generationSize = generationConfig.generationSize;
+  var generationSize = generationConfig.constants.generationSize;
 
   for (var k = 0; k < generationSize; k++) {
 
@@ -645,11 +579,10 @@ function cw_init() {
   hbar.parentNode.removeChild(hbar);
   world_def.floorseed = btoa(Math.seedrandom());
   cw_generationZero();
+  ghost = ghost_create_ghost();
+  resetCarUI();
   currentRunner = worldRun(world_def, generationState.generation, uiListeners);
-  cw_carArray = currentRunner.cars.map(function(car){
-    return new cw_Car(car, carMap);
-  })
-
+  setupCarUI();
   cw_drawMiniMap();
   cw_runningInterval = setInterval(simulationStep, Math.round(1000 / box2dfps));
   cw_drawInterval = setInterval(cw_drawScreen, Math.round(1000 / screenfps));
@@ -677,21 +610,19 @@ function relMouseCoords(event) {
 HTMLDivElement.prototype.relMouseCoords = relMouseCoords;
 minimapholder.onclick = function (event) {
   var coords = minimapholder.relMouseCoords(event);
+  var cw_carArray = Array.from(carMap.values());
   var closest = {
-    index: 0,
+    value: cw_carArray[0].car,
     dist: Math.abs(((cw_carArray[0].getPosition().x + 6) * minimapscale) - coords.x),
     x: cw_carArray[0].getPosition().x
   }
 
   var maxX = 0;
   for (var i = 0; i < cw_carArray.length; i++) {
-    if (!cw_carArray[i].alive) {
-      continue;
-    }
     var pos = cw_carArray[i].getPosition();
     var dist = Math.abs(((pos.x + 6) * minimapscale) - coords.x);
     if (dist < closest.dist) {
-      closest.index = i;
+      closest.value = cw_carArray.car;
       closest.dist = dist;
       closest.x = pos.x;
     }
@@ -701,7 +632,7 @@ minimapholder.onclick = function (event) {
   if (closest.x == maxX) { // focus on leader again
     cw_setCameraTarget(-1);
   } else {
-    cw_setCameraTarget(closest.index);
+    cw_setCameraTarget(closest.value);
   }
 }
 
@@ -732,11 +663,11 @@ document.querySelector("#elitesize").addEventListener("change", function(e){
 })
 
 function cw_setMutation(mutation) {
-  generationConfig.gen_mutation = parseFloat(mutation);
+  generationConfig.constants.gen_mutation = parseFloat(mutation);
 }
 
 function cw_setMutationRange(range) {
-  generationConfig.mutation_range = parseFloat(range);
+  generationConfig.constants.mutation_range = parseFloat(range);
 }
 
 function cw_setMutableFloor(choice) {
@@ -753,7 +684,7 @@ function cw_setGravity(choice) {
 }
 
 function cw_setEliteSize(clones) {
-  generationConfig.championLength = parseInt(clones, 10);
+  generationConfig.constants.championLength = parseInt(clones, 10);
 }
 
 cw_init();

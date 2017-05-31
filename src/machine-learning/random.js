@@ -46,7 +46,9 @@ const random = {
     }
     return values;
   },
-  mutateShuffle(prop, generator, originalValues, mutation_range){
+  mutateShuffle(
+    prop, generator, originalValues, mutation_range, chanceToMutate
+  ){
     var l = prop.length || 1;
     var max = prop.max || 10;
     var factor = (prop.factor || 1) * mutation_range
@@ -58,26 +60,27 @@ const random = {
           { min: 0, range: max },
           generator,
           [originalValues[i]],
-          factor
+          factor,
+          chanceToMutate
         )[0];
       } while(values.indexOf(nextVal) > -1);
       values.push(nextVal)
     }
     return values;
   },
-  mutateIntegers(prop, generator, originalValues, mutation_range){
+  mutateIntegers(prop, generator, originalValues, mutation_range, chanceToMutate){
     var factor = (prop.factor || 1) * mutation_range
     prop = {
       min: prop.min || 0,
       range: prop.range || 10
     }
     return random.mutateFloats(
-      prop, generator, originalValues, factor
+      prop, generator, originalValues, factor, chanceToMutate
     ).map(function(float){
       return Math.round(float);
     })
   },
-  mutateFloats(prop, generator, originalValues, mutation_range){
+  mutateFloats(prop, generator, originalValues, mutation_range, chanceToMutate){
     var factor = (prop.factor || 1) * mutation_range
     prop = {
       min: prop.min || 0,
@@ -85,6 +88,9 @@ const random = {
     }
     // console.log(arguments);
     return originalValues.map(function(originalValue){
+      if(generator() > chanceToMutate){
+        return originalValue;
+      }
       return mutateFloat(
         prop, generator, originalValue, factor
       );

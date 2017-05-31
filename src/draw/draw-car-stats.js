@@ -1,10 +1,6 @@
 /* globals document */
 
-var ghost_fns = require("../ghost/index.js");
 var run = require("../car-schema/run");
-
-var ghost_create_replay = ghost_fns.ghost_create_replay;
-var ghost_add_replay_frame = ghost_fns.ghost_add_replay_frame;
 
 /* ========================================================================= */
 /* === Car ================================================================= */
@@ -12,9 +8,7 @@ var cw_Car = function () {
   this.__constructor.apply(this, arguments);
 }
 
-cw_Car.prototype.__constructor = function (car, carMap) {
-  carMap.set(car, this);
-  this.carMap = carMap;
+cw_Car.prototype.__constructor = function (car) {
   this.car = car;
   this.car_def = car.def;
   var car_def = this.car_def;
@@ -37,8 +31,6 @@ cw_Car.prototype.__constructor = function (car, carMap) {
     this.minimapmarker.innerHTML = car_def.index;
   }
 
-  this.replay = ghost_create_replay();
-  ghost_add_replay_frame(this.replay, this.car.car);
 }
 
 cw_Car.prototype.getPosition = function () {
@@ -46,7 +38,7 @@ cw_Car.prototype.getPosition = function () {
 }
 
 cw_Car.prototype.kill = function (currentRunner, constants) {
-  this.carMap.delete(this.car);
+  this.minimapmarker.style.borderLeft = "1px solid #3F72AF";
   var finishLine = currentRunner.scene.finishLine
   var max_car_health = constants.max_car_health;
   var status = run.getStatus(this.car.state, {
