@@ -60,8 +60,8 @@ function generateSchema(values){
     },
     wheel_vertex: {
       type: "shuffle",
-      max: 7,
-      length: 2,
+      length: 8,
+      limit: 2,
       factor: 1,
     },
   };

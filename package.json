@@ -6,7 +6,9 @@
   "scripts": {
     "watch": " npm run build && watch-run -p './src/**' npm run build",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "browserify --debug ./src/index.js -o ./bundle.js"
+    "build": "npm run build-main && npm run build-graph",
+    "build-main": "browserify --debug ./src/index.js -o ./bundle.js",
+    "build-graph": "browserify --debug ./src/bare.js -o ./bundle-bare.js"
   },
   "repository": {
     "type": "git",

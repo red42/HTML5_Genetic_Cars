@@ -1,9 +1,14 @@
+/* globals btoa */
 var setupScene = require("./setup-scene");
 var carRun = require("../car-schema/run");
 var defToCar = require("../car-schema/def-to-car");
 
 module.exports = runDefs;
 function runDefs(world_def, defs, listeners){
+  if (world_def.mutable_floor) {
+    // GHOST DISABLED
+    world_def.floorseed = btoa(Math.seedrandom());
+  }
 
   var scene = setupScene(world_def);
   scene.world.Step(1 / world_def.box2dfps, 20, 20);

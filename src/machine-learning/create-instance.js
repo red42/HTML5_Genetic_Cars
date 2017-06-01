@@ -4,17 +4,7 @@ module.exports = {
   createGenerationZero(schema, generator){
     return Object.keys(schema).reduce(function(instance, key){
       var schemaProp = schema[key];
-      var values;
-      switch(schemaProp.type){
-        case "shuffle" :
-          values = random.shuffleIntegers(schemaProp, generator); break;
-        case "float" :
-          values = random.createFloats(schemaProp, generator); break;
-        case "integer":
-          values = random.createIntegers(schemaProp, generator); break;
-        default:
-          throw new Error(`Unknown type ${schemaProp.type} of schema for key ${key}`);
-      }
+      var values = random.createNormals(schemaProp, generator);
       instance[key] = values;
       return instance;
     }, { id: Math.random().toString(32) });
@@ -43,18 +33,29 @@ module.exports = {
   createMutatedClone(schema, generator, parent, factor, chanceToMutate){
     return Object.keys(schema).reduce(function(clone, key){
       var schemaProp = schema[key];
+      var originalValues = parent[key];
+      var values = random.mutateNormals(
+        schemaProp, generator, originalValues, factor, chanceToMutate
+      );
+      clone[key] = values;
+      return clone;
+    }, {
+      id: parent.id,
+      ancestry: parent.ancestry
+    });
+  },
+  applyTypes(schema, parent){
+    return Object.keys(schema).reduce(function(clone, key){
+      var schemaProp = schema[key];
+      var originalValues = parent[key];
       var values;
-      // console.log(key, parent[key]);
       switch(schemaProp.type){
-        case "shuffle" : values = random.mutateShuffle(
-          schemaProp, generator, parent[key], factor, chanceToMutate
-        ); break;
-        case "float" : values = random.mutateFloats(
-          schemaProp, generator, parent[key], factor, chanceToMutate
-        ); break;
-        case "integer": values = random.mutateIntegers(
-          schemaProp, generator, parent[key], factor, chanceToMutate
-        ); break;
+        case "shuffle" :
+          values = random.mapToShuffle(schemaProp, originalValues); break;
+        case "float" :
+          values = random.mapToFloat(schemaProp, originalValues); break;
+        case "integer":
+          values = random.mapToInteger(schemaProp, originalValues); break;
         default:
           throw new Error(`Unknown type ${schemaProp.type} of schema for key ${key}`);
       }
@@ -64,5 +65,5 @@ module.exports = {
       id: parent.id,
       ancestry: parent.ancestry
     });
-  }
+  },
 }

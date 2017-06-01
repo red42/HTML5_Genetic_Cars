@@ -1,6 +1,14 @@
 var getInbreedingCoefficient = require("./inbreeding-coefficient");
 
-module.exports = selectFromAllParents;
+module.exports = simpleSelect;
+
+function simpleSelect(parents){
+  var totalParents = parents.length
+  var r = Math.random();
+  if (r == 0)
+    return 0;
+  return Math.floor(-Math.log(r) * totalParents) % totalParents;
+}
 
 function selectFromAllParents(parents, parentList, previousParentIndex) {
   var previousParent = parents[previousParentIndex];
@@ -43,8 +51,4 @@ function selectFromAllParents(parents, parentList, previousParentIndex) {
     }
   }
   return i;
-  // var r = Math.random();
-  // if (r == 0)
-  //   return 0;
-  // return Math.floor(-Math.log(r) * totalParents) % totalParents;
 }

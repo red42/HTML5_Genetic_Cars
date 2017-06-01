@@ -77,6 +77,7 @@ minimapcamera.height = 6 * minimapscale + "px";
 
 
 // ======= WORLD STATE ======
+var generationConfig = require("./generation-config");
 
 
 var world_def = {
@@ -88,7 +89,8 @@ var world_def = {
   mutable_floor: false,
   box2dfps: box2dfps,
   motorSpeed: 20,
-  max_car_health: max_car_health
+  max_car_health: max_car_health,
+  schema: generationConfig.constants.schema
 }
 
 var cw_deadCars;
@@ -108,7 +110,6 @@ function resetGraphState(){
   };
 }
 
-var generationConfig = require("./generation-config");
 
 
 // ==========================
@@ -368,7 +369,11 @@ function cleanupRound(results){
     }
   })
   graphState = plot_graphs(
-    graphState, results
+    document.getElementById("graphcanvas"),
+    document.getElementById("topscores"),
+    null,
+    graphState,
+    results
   );
 }
 

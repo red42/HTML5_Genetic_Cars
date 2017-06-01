@@ -1,9 +1,13 @@
 /*
   globals b2RevoluteJointDef b2Vec2 b2BodyDef b2Body b2FixtureDef b2PolygonShape b2CircleShape
 */
+
+var createInstance = require("../machine-learning/create-instance");
+
 module.exports = defToCar;
 
-function defToCar(car_def, world, constants){
+function defToCar(normal_def, world, constants){
+  var car_def = createInstance.applyTypes(constants.schema, normal_def)
   var instance = {};
   instance.chassis = createChassis(
     world, car_def.vertex_list, car_def.chassis_density

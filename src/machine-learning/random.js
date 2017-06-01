@@ -2,46 +2,29 @@
 
 const random = {
   shuffleIntegers(prop, generator){
-    var offset = prop.offset || 0;
-    var max = prop.max || 10;
-    var l = prop.length || max;
-    var values = [0];
-    if(l === 1) return values;
-    for(var i = 1; i < max; i++){
-      var placement = random.createIntegers(
-        { length: 1, min: 0, range: i }, generator
-      )[0];
-      if(placement === 0){
-        values.unshift(i);
-      } else if(placement === i){
-        values.push(i)
-      } else {
-        values.splice(placement, 0, i)
-      }
-    }
-    return values.slice(0, l).map(function(num){
-      return offset + num;
-    });
+    return random.mapToShuffle(prop, random.createNormals({
+      length: prop.length || 10,
+      inclusive: true,
+    }, generator));
   },
   createIntegers(prop, generator){
-    return random.createFloats({
-      min: prop.min || 0,
-      range: prop.range || 10,
-      length: prop.length
-    }, generator).map(function(float){
-      return Math.round(float);
-    });
+    return random.mapToInteger(prop, random.createNormals({
+      length: prop.length,
+      inclusive: true,
+    }, generator));
   },
   createFloats(prop, generator){
+    return random.mapToFloat(prop, random.createNormals({
+      length: prop.length,
+      inclusive: true,
+    }, generator));
+  },
+  createNormals(prop, generator){
     var l = prop.length;
-    prop = {
-      min: prop.min || 0,
-      range: prop.range || 1,
-    }
     var values = [];
     for(var i = 0; i < l; i++){
       values.push(
-        createFloat(prop, generator)
+        createNormal(prop, generator)
       );
     }
     return values;
@@ -49,82 +32,83 @@ const random = {
   mutateShuffle(
     prop, generator, originalValues, mutation_range, chanceToMutate
   ){
-    var l = prop.length || 1;
-    var max = prop.max || 10;
-    var factor = (prop.factor || 1) * mutation_range
-    var values = [];
-    for(var i = 0; i < l; i++){
-      var nextVal;
-      do {
-        nextVal = random.mutateIntegers(
-          { min: 0, range: max },
-          generator,
-          [originalValues[i]],
-          factor,
-          chanceToMutate
-        )[0];
-      } while(values.indexOf(nextVal) > -1);
-      values.push(nextVal)
-    }
-    return values;
+    return random.mapToShuffle(prop, random.mutateNormals(
+      prop, generator, originalValues, mutation_range, chanceToMutate
+    ));
   },
   mutateIntegers(prop, generator, originalValues, mutation_range, chanceToMutate){
-    var factor = (prop.factor || 1) * mutation_range
-    prop = {
-      min: prop.min || 0,
-      range: prop.range || 10
-    }
-    return random.mutateFloats(
-      prop, generator, originalValues, factor, chanceToMutate
-    ).map(function(float){
-      return Math.round(float);
-    })
+    return random.mapToInteger(prop, random.mutateNormals(
+      prop, generator, originalValues, mutation_range, chanceToMutate
+    ));
   },
   mutateFloats(prop, generator, originalValues, mutation_range, chanceToMutate){
-    var factor = (prop.factor || 1) * mutation_range
+    return random.mapToFloat(prop, random.mutateNormals(
+      prop, generator, originalValues, mutation_range, chanceToMutate
+    ));
+  },
+  mapToShuffle(prop, normals){
+    var offset = prop.offset || 0;
+    var limit = prop.limit || prop.length;
+    var sorted = normals.slice().sort(function(a, b){
+      return a - b;
+    });
+    return normals.map(function(val){
+      return sorted.indexOf(val);
+    }).map(function(i){
+      return i + offset;
+    }).slice(0, limit);
+  },
+  mapToInteger(prop, normals){
+    prop = {
+      min: prop.min || 0,
+      range: prop.range || 10,
+      length: prop.length
+    }
+    return random.mapToFloat(prop, normals).map(function(float){
+      return Math.round(float);
+    });
+  },
+  mapToFloat(prop, normals){
     prop = {
       min: prop.min || 0,
       range: prop.range || 1
     }
-    // console.log(arguments);
+    return normals.map(function(normal){
+      var min = prop.min;
+      var range = prop.range;
+      return min + normal * range
+    })
+  },
+  mutateNormals(prop, generator, originalValues, mutation_range, chanceToMutate){
+    var factor = (prop.factor || 1) * mutation_range
     return originalValues.map(function(originalValue){
       if(generator() > chanceToMutate){
         return originalValue;
       }
-      return mutateFloat(
+      return mutateNormal(
         prop, generator, originalValue, factor
       );
     });
-  },
+  }
 };
 
 module.exports = random;
 
-function createFloat(prop, generator){
-  var min = prop.min;
-  var range = prop.range;
-  return min + createRandom({inclusive: true}, generator) * range
-}
-
-function mutateFloat(prop, generator, originalValue, mutation_range){
-  var oldMin = prop.min;
-  var oldRange = prop.range;
-  var newRange = oldRange * mutation_range;
-  if(newRange > oldRange){
-    throw new Error("mutation should scale to zero");
+function mutateNormal(prop, generator, originalValue, mutation_range){
+  if(mutation_range > 1){
+    throw new Error("Cannot mutate beyond bounds");
   }
-  var newMin = originalValue - 0.5 * newRange;
-  if (newMin < oldMin) newMin = oldMin;
-  if (newMin + newRange  > oldMin + oldRange)
-    newMin = (oldMin + oldRange) - newRange;
-  return createFloat({
-    min: newMin,
-    range: newRange
+  var newMin = originalValue - 0.5;
+  if (newMin < 0) newMin = 0;
+  if (newMin + mutation_range  > 1)
+    newMin = 1 - mutation_range;
+  var rangeValue = createNormal({
+    inclusive: true,
   }, generator);
-
+  return newMin + rangeValue * mutation_range;
 }
 
-function createRandom(prop, generator){
+function createNormal(prop, generator){
   if(!prop.inclusive){
     return generator();
   } else {
