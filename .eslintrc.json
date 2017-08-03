@@ -1,0 +1,32 @@
+{
+  "env": { },
+  "plugins": [],
+  "extends": [
+    "eslint:recommended"
+  ],
+  "globals": {
+    "Promise": true,
+    "console": true,
+    "require": true,
+    "Set": true,
+    "Map": true,
+    "setTimeout": true,
+    "clearTimeout": true,
+    "setInterval": true,
+    "clearInterval": true,
+    "setImmediate": true,
+    "__dirname": true,
+    "global": true,
+    "module": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 5,
+    "sourceType": "module",
+    "impliedStrict": true
+  },
+  "rules": {
+    "no-use-before-define": [2, { "functions": false }],
+    "no-mixed-spaces-and-tabs": 0,
+    "no-console": 0
+  }
+}

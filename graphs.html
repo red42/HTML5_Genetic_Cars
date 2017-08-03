@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>HTML5 Genetic Algorithm 2D Car Thingy - Chrome recommended</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.20.0/vis.min.css" />
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="clearfix">
+  <div class="controls">
+    <div class="buttons">
+      <input id="save-progress" type="button" value="Save Population" />
+      <input id="restore-progress" type="button" value="Restore Saved Population" />
+      <input id="toggle-display" type="button" value="Surprise!" />
+      <input id="new-population" type="button" value="New Population" />
+      <input id="fast-forward" type="button" value="Next Generation" />
+    </div>
+
+    <div>
+      <label>Create new world with seed</label><br>
+      <input type="text" placeholder="Enter any string" id="newseed"/>
+      <input id="confirm-reset" type="button" value="Go!" />
+    </div>
+  </div>
+  <div class="float-left">
+    <div class="clearfix" id="graph-list">
+    </div>
+  </div>
+  <template id="graph-template">
+    <div>
+      <div>
+        <div class="float-left">
+          <div class="graphholder">
+            <canvas class="graphcanvas" width="400" height="250"></canvas>
+            <div class="scale" id="s100">250</div>
+            <div class="scale" id="s75">187</div>
+            <div class="scale" id="s50">125</div>
+            <div class="scale" id="s25">62</div>
+            <div class="scale" id="s0">0</div>
+          </div>
+        </div>
+        <div class="float-left">
+          <div class="topscoreholder">
+            <div class="topscores"></div>
+          </div>
+        </div>
+      </div>
+      <div class="scatterplot"></div>
+    </div>
+  </template>
+</div>
+
+<script src="lib/seedrandom.js"></script>
+<script src="lib/box2d.js"></script>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="http://code.highcharts.com/highcharts.js"></script>
+<script src="bundle-bare.js"></script>
+
+</body>
+</html>

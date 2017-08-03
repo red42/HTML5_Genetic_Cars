@@ -1,4 +1,20 @@
+
+var ghost_get_frame = require("./car-to-ghost.js");
+
 var enable_ghost = true;
+
+module.exports = {
+  ghost_create_replay: ghost_create_replay,
+  ghost_create_ghost: ghost_create_ghost,
+  ghost_pause: ghost_pause,
+  ghost_resume: ghost_resume,
+  ghost_get_position: ghost_get_position,
+  ghost_compare_to_replay: ghost_compare_to_replay,
+  ghost_move_frame: ghost_move_frame,
+  ghost_add_replay_frame: ghost_add_replay_frame,
+  ghost_draw_frame: ghost_draw_frame,
+  ghost_reset_ghost: ghost_reset_ghost
+}
 
 function ghost_create_replay() {
   if (!enable_ghost)
@@ -91,7 +107,8 @@ function ghost_add_replay_frame(replay, car) {
   replay.num_frames++;
 }
 
-function ghost_draw_frame(ctx, ghost) {
+function ghost_draw_frame(ctx, ghost, camera) {
+  var zoom = camera.zoom;
   if (!enable_ghost)
     return;
   if (ghost == null)
@@ -109,7 +126,7 @@ function ghost_draw_frame(ctx, ghost) {
   ctx.lineWidth = 1 / zoom;
 
   for (var i = 0; i < frame.wheels.length; i++) {
-    for (w in frame.wheels[i]) {
+    for (var w in frame.wheels[i]) {
       ghost_draw_circle(ctx, frame.wheels[i][w].pos, frame.wheels[i][w].rad, frame.wheels[i][w].ang);
     }
   }
@@ -119,65 +136,10 @@ function ghost_draw_frame(ctx, ghost) {
   ctx.fillStyle = "#eee";
   ctx.lineWidth = 1 / zoom;
   ctx.beginPath();
-  for (c in frame.chassis)
+  for (var c in frame.chassis)
     ghost_draw_poly(ctx, frame.chassis[c].vtx, frame.chassis[c].num);
   ctx.fill();
   ctx.stroke();
-}
-
-function ghost_get_frame(car) {
-  var out = {
-    chassis: ghost_get_chassis(car.chassis),
-    wheels: [],
-    pos: {x: car.getPosition().x, y: car.getPosition().y}
-  };
-
-  for (var i = 0; i < car.wheels.length; i++) {
-    out.wheels[i] = ghost_get_wheel(car.wheels[i]);
-  }
-
-  return out;
-}
-
-function ghost_get_chassis(c) {
-  var gc = [];
-
-  for (f = c.GetFixtureList(); f; f = f.m_next) {
-    s = f.GetShape();
-
-    var p = {
-      vtx: [],
-      num: 0
-    }
-
-    p.num = s.m_vertexCount;
-
-    for (var i = 0; i < s.m_vertexCount; i++) {
-      p.vtx.push(c.GetWorldPoint(s.m_vertices[i]));
-    }
-
-    gc.push(p);
-  }
-
-  return gc;
-}
-
-function ghost_get_wheel(w) {
-  var gw = [];
-
-  for (f = w.GetFixtureList(); f; f = f.m_next) {
-    s = f.GetShape();
-
-    var c = {
-      pos: w.GetWorldPoint(s.m_p),
-      rad: s.m_radius,
-      ang: w.m_sweep.a
-    }
-
-    gw.push(c);
-  }
-
-  return gw;
 }
 
 function ghost_draw_poly(ctx, vtx, n_vtx) {

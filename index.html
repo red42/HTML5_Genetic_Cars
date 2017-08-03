@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <title>HTML5 Genetic Algorithm 2D Car Thingy - Chrome recommended</title>
-
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.20.0/vis.min.css" />
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -29,7 +29,7 @@
       <div class="float-left">
 
         <div id="topscoreholder">
-          <input type="button" value="View top replay" onclick="cw_toggleGhostReplay(this)"/><br/>
+          <input id="toggle-ghost" type="button" value="View top replay" /><br/>
           <div id="topscores"></div>
         </div>
 
@@ -60,16 +60,17 @@
       <br/>
 
       <div class="buttons">
-        <input type="button" value="Save Population" onclick="saveProgress();"/>
-        <input type="button" value="Restore Saved Population" onclick="restoreProgress();"/>
-        <input type="button" value="Surprise!" onclick="toggleDisplay()"/>
-        <input type="button" value="New Population" onclick="cw_resetPopulation()"/>
+        <input id="save-progress" type="button" value="Save Population" />
+        <input id="restore-progress" type="button" value="Restore Saved Population" />
+        <input id="toggle-display" type="button" value="Surprise!" />
+        <input id="new-population" type="button" value="New Population" />
+        <input id="fast-forward" type="button" value="Fast Forward" />
       </div>
 
       <div>
         <label>Create new world with seed</label><br>
         <input type="text" placeholder="Enter any string" id="newseed"/>
-        <input type="button" value="Go!" onclick="cw_confirmResetWorld()"/>
+        <input id="confirm-reset" type="button" value="Go!" />
       </div>
 
       <table>
@@ -88,7 +89,7 @@
         <tr>
           <td>Mutation rate:</td>
           <td>
-            <select id="mutationrate" onchange="cw_setMutation(this.options[this.selectedIndex].value)">
+            <select id="mutationrate" >
               <option value="0">0%</option>
               <option value="0.01">1%</option>
               <option value="0.02">2%</option>
@@ -108,7 +109,7 @@
         <tr>
           <td>Mutation size:</td>
           <td>
-            <select id="mutationsize" onchange="cw_setMutationRange(this.options[this.selectedIndex].value)">
+            <select id="mutationsize" >
               <option value="0">0%</option>
               <option value="0.01">1%</option>
               <option value="0.02">2%</option>
@@ -128,7 +129,7 @@
         <tr>
           <td>Floor:</td>
           <td>
-            <select id="floor" onchange="cw_setMutableFloor(this.options[this.selectedIndex].value)">
+            <select id="floor" >
               <option value="0" selected="selected">fixed</option>
               <option value="1">mutable</option>
             </select>
@@ -137,7 +138,7 @@
         <tr>
           <td>Gravity:</td>
           <td>
-            <select id="gravity" onchange="cw_setGravity(this.options[this.selectedIndex].value)">
+            <select id="gravity" >
               <option value="24.8">Jupiter (24.8)</option>
               <option value="11.2">Neptune (11.2)</option>
               <option value="10.4">Saturn (10.4)</option>
@@ -152,7 +153,7 @@
         <tr>
           <td>Elite clones:</td>
           <td>
-            <select id="elitesize" onchange="cw_setEliteSize(this.options[this.selectedIndex].value)">
+            <select id="elitesize" >
               <option value="0">0</option>
               <option value="1" selected="selected">1</option>
               <option value="2">2</option>
@@ -287,24 +288,9 @@
 
 <script src="lib/seedrandom.js"></script>
 <script src="lib/box2d.js"></script>
-<script src="ghost.js"></script>
-<script src="path.js"></script>
-<script src="cawro.js"></script>
-<script src="graphs.js"></script>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.20.0/vis.min.js" ></script>
+<script src="bundle.js"></script>
 
-<script type="text/javascript">
-  var _gaq = _gaq || [];
-  _gaq.push(['_setAccount', 'UA-25432661-3']);
-  _gaq.push(['_trackPageview']);
-
-  (function () {
-    var ga = document.createElement('script');
-    ga.type = 'text/javascript';
-    ga.async = true;
-    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-    var s = document.getElementsByTagName('script')[0];
-    s.parentNode.insertBefore(ga, s);
-  })();
-</script>
 </body>
 </html>
