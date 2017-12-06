@@ -35,6 +35,8 @@ var cw_paused = false;
 
 var box2dfps = 60;
 var screenfps = 60;
+var skipTicks = Math.round(1000 / box2dfps);
+var maxFrameSkip = skipTicks * 2;
 
 var canvas = document.getElementById("mainbox");
 var ctx = canvas.getContext("2d");
@@ -117,9 +119,9 @@ function resetGraphState(){
 var generationState;
 
 // ======== Activity State ====
-var cw_runningInterval;
-var cw_drawInterval;
 var currentRunner;
+var loops = 0;
+var nextGameTick = (new Date).getTime();
 
 function showDistance(distance, height) {
   distanceMeter.innerHTML = distance + " meters<br />";
@@ -314,12 +316,25 @@ var uiListeners = {
     return cw_newRound(results);
   }
 }
-function simulationStep() {
+
+function simulationStep() {  
   currentRunner.step();
   showDistance(
     Math.round(leaderPosition.x * 100) / 100,
     Math.round(leaderPosition.y * 100) / 100
   );
+}
+
+function gameLoop() {
+  loops = 0;
+  while (!cw_paused && (new Date).getTime() > nextGameTick && loops < maxFrameSkip) {   
+    nextGameTick += skipTicks;
+    loops++;
+  }
+  simulationStep();
+  cw_drawScreen();
+
+  if(!cw_paused) window.requestAnimationFrame(gameLoop);
 }
 
 function updateCarUI(carInfo){
@@ -399,13 +414,12 @@ function cw_newRound(results) {
 }
 
 function cw_startSimulation() {
-  cw_runningInterval = setInterval(simulationStep, Math.round(1000 / box2dfps));
-  cw_drawInterval = setInterval(cw_drawScreen, Math.round(1000 / screenfps));
+  cw_paused = false;
+  window.requestAnimationFrame(gameLoop);
 }
 
 function cw_stopSimulation() {
-  clearInterval(cw_runningInterval);
-  clearInterval(cw_drawInterval);
+  cw_paused = true;
 }
 
 function cw_resetPopulationUI() {
@@ -515,16 +529,13 @@ function cw_confirmResetWorld() {
 
 function cw_pauseSimulation() {
   cw_paused = true;
-  clearInterval(cw_runningInterval);
-  clearInterval(cw_drawInterval);
   ghost_pause(ghost);
 }
 
 function cw_resumeSimulation() {
   cw_paused = false;
   ghost_resume(ghost);
-  cw_runningInterval = setInterval(simulationStep, Math.round(1000 / box2dfps));
-  cw_drawInterval = setInterval(cw_drawScreen, Math.round(1000 / screenfps));
+  window.requestAnimationFrame(gameLoop);
 }
 
 function cw_startGhostReplay() {
@@ -589,8 +600,8 @@ function cw_init() {
   currentRunner = worldRun(world_def, generationState.generation, uiListeners);
   setupCarUI();
   cw_drawMiniMap();
-  cw_runningInterval = setInterval(simulationStep, Math.round(1000 / box2dfps));
-  cw_drawInterval = setInterval(cw_drawScreen, Math.round(1000 / screenfps));
+  window.requestAnimationFrame(gameLoop);
+  
 }
 
 function relMouseCoords(event) {
