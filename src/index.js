@@ -426,7 +426,7 @@ function cw_resetPopulationUI() {
   document.getElementById("generation").innerHTML = "";
   document.getElementById("cars").innerHTML = "";
   document.getElementById("topscores").innerHTML = "";
-  cw_clearGraphics();
+  cw_clearGraphics(document.getElementById("graphcanvas"));
   resetGraphState();
 }
 

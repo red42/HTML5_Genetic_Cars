@@ -21,6 +21,13 @@ module.exports = {
       scatterPlotElem, config, nextState, lastState.scatterGraph
     );
     return nextState;
+  },
+  clearGraphics: function(graphElem) {
+    var graphcanvas = graphElem;
+    var graphctx = graphcanvas.getContext("2d");
+    var graphwidth = 400;
+    var graphheight = 250;
+    cw_clearGraphics(graphcanvas, graphctx, graphwidth, graphheight);
   }
 };
 
