@@ -236,9 +236,6 @@ function cw_drawCars() {
 }
 
 function toggleDisplay() {
-  if (cw_paused) {
-    return;
-  }
   canvas.width = canvas.width;
   if (doDraw) {
     doDraw = false;
