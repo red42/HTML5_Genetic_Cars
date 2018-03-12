@@ -17,6 +17,8 @@ local.properties
 .classpath
 .settings/
 .loadpath
+main.js
+index-test.html
 
 # External tool builders
 .externalToolBuilders/
