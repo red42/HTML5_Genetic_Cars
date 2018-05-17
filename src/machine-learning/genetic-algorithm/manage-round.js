@@ -5,6 +5,32 @@ module.exports = {
   nextGeneration: nextGeneration
 }
 
+function make_def_standard(def) {
+    var extents = 1;
+
+    def.vertex_list = [
+        extents,
+
+        extents / 2,
+        extents / 2,
+
+        extents,
+
+        extents / 2,
+        extents / 2,
+
+        extents,
+
+        extents / 4,
+        extents / 4,
+
+        0,
+
+        extents / 4,
+        extents / 4
+    ];
+}
+
 function generationZero(config){
   var generationSize = config.generationSize,
   schema = config.schema;
@@ -13,6 +39,9 @@ function generationZero(config){
     var def = create.createGenerationZero(schema, function(){
       return Math.random()
     });
+
+    make_def_standard(def);
+
     def.index = k;
     cw_carGeneration.push(def);
   }
@@ -53,6 +82,9 @@ function nextGeneration(
     newborn = mutate(config, newborn);
     newborn.is_elite = false;
     newborn.index = k;
+
+    make_def_standard(newborn);
+
     newGeneration.push(newborn);
   }
 
