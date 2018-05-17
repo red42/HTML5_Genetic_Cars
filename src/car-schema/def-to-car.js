@@ -6,8 +6,19 @@ var createInstance = require("../machine-learning/create-instance");
 
 module.exports = defToCar;
 
+function make_def_standard(def) {
+    var extents = 0.5;
+
+    def.wheel_vertex = [
+        0,
+        4
+    ];
+}
+
 function defToCar(normal_def, world, constants){
   var car_def = createInstance.applyTypes(constants.schema, normal_def)
+  make_def_standard(car_def);
+  
   var instance = {};
   instance.chassis = createChassis(
     world, car_def.vertex_list, car_def.chassis_density
@@ -36,6 +47,7 @@ function defToCar(normal_def, world, constants){
     var torque = carmass * -constants.gravity.y / car_def.wheel_radius[i];
 
     var randvertex = instance.chassis.vertex_list[car_def.wheel_vertex[i]];
+
     joint_def.localAnchorA.Set(randvertex.x, randvertex.y);
     joint_def.localAnchorB.Set(0, 0);
     joint_def.maxMotorTorque = torque;
