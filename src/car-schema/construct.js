@@ -61,7 +61,7 @@ function generateSchema(values){
     wheel_vertex: {
       type: "shuffle",
       length: 8,
-      limit: 2,
+      limit: values.wheelCount,
       factor: 1,
     },
   };
