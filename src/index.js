@@ -419,6 +419,12 @@ function cw_stopSimulation() {
   cw_paused = true;
 }
 
+function cw_clearPopulationWorld() {
+  carMap.forEach(function(car){
+    car.kill(currentRunner, world_def);
+  });
+}
+
 function cw_resetPopulationUI() {
   document.getElementById("generation").innerHTML = "";
   document.getElementById("cars").innerHTML = "";
@@ -431,6 +437,7 @@ function cw_resetWorld() {
   doDraw = true;
   cw_stopSimulation();
   world_def.floorseed = document.getElementById("newseed").value;
+  cw_clearPopulationWorld();
   cw_resetPopulationUI();
 
   Math.seedrandom();
