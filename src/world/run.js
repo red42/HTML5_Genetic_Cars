@@ -1,7 +1,8 @@
-/* globals btoa */
-var setupScene = require("./setup-scene");
-var carRun = require("../car-schema/run");
-var defToCar = require("../car-schema/def-to-car");
+/*Variables changed to let for the better usage of code*/
+
+let setupScene = require("./setup-scene");
+let carRun = require("../car-schema/run");
+let defToCar = require("../car-schema/def-to-car");
 
 module.exports = runDefs;
 function runDefs(world_def, defs, listeners) {
@@ -10,10 +11,10 @@ function runDefs(world_def, defs, listeners) {
     world_def.floorseed = btoa(Math.seedrandom());
   }
 
-  var scene = setupScene(world_def);
+  let scene = setupScene(world_def);
   scene.world.Step(1 / world_def.box2dfps, 20, 20);
   console.log("about to build cars");
-  var cars = defs.map((def, i) => {
+  let cars = defs.map((def, i) => {
     return {
       index: i,
       def: def,
@@ -21,7 +22,7 @@ function runDefs(world_def, defs, listeners) {
       state: carRun.getInitialState(world_def)
     };
   });
-  var alivecars = cars;
+  let alivecars = cars;
   return {
     scene: scene,
     cars: cars,
@@ -35,7 +36,7 @@ function runDefs(world_def, defs, listeners) {
         car.state = carRun.updateState(
           world_def, car.car, car.state
         );
-        var status = carRun.getStatus(car.state, world_def);
+        let status = carRun.getStatus(car.state, world_def);
         listeners.carStep(car);
         if (status === 0) {
           return true;
@@ -43,11 +44,11 @@ function runDefs(world_def, defs, listeners) {
         car.score = carRun.calculateScore(car.state, world_def);
         listeners.carDeath(car);
 
-        var world = scene.world;
-        var worldCar = car.car;
+        let world = scene.world;
+        let worldCar = car.car;
         world.DestroyBody(worldCar.chassis);
 
-        for (var w = 0; w < worldCar.wheels.length; w++) {
+        for (let w = 0; w < worldCar.wheels.length; w++) {
           world.DestroyBody(worldCar.wheels[w]);
         }
 
