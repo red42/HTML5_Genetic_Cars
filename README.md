@@ -1,4 +1,4 @@
-HTML5 Genetic Cars
+HTML5 Genetic Cars:-
 ==================
 
 A genetic algorithm car evolver in HTML5 canvas.
@@ -9,6 +9,7 @@ This is the code as published on http://rednuht.org/genetic_cars_2/
 
 The current module-based format required npm and browserify.
 
-Build with:
+# Build With:
 
 npm run-script build
+
