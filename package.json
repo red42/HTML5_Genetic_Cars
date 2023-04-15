@@ -26,7 +26,7 @@
   "homepage": "https://github.com/formula1/HTML5_Genetic_Cars#readme",
   "devDependencies": {
     "browserify": "^14.3.0",
-    "npm-watch": "^0.3.0"
+    "npm-watch": "^0.11.0"
   },
   "dependencies": {
     "mersenne-twister": "^1.1.0"
