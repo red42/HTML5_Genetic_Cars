@@ -502,56 +502,64 @@ async function saveProgress() {
     type: "application/json",
   });
 
-  const newHandle = await window.showSaveFilePicker();
-  const writableStream = await newHandle.createWritable();
-  await writableStream.write(progressBlob);
-  await writableStream.close();
-
-  cw_startSimulation();
+  try {
+    const newHandle = await window.showSaveFilePicker();
+    const writableStream = await newHandle.createWritable();
+    await writableStream.write(progressBlob);
+    await writableStream.close();
+  } catch (error) {
+    console.log(error);
+  } finally {
+    cw_startSimulation();
+  }
 }
 
 async function restoreProgress() {
-  const pickerOpts = {
-    types: [
-      {
-        description: "JSON",
-        accept: {
-          "application/json": [".json"],
+  try {
+    const pickerOpts = {
+      types: [
+        {
+          description: "JSON",
+          accept: {
+            "application/json": [".json"],
+          },
         },
-      },
-    ],
-    excludeAcceptAllOption: true,
-    multiple: false,
-  };
-  const [fileHandle] = await window.showOpenFilePicker(pickerOpts);
-  const progressFile = await fileHandle.getFile();
-  const reader = new FileReader();
-  reader.readAsText(progressFile)
-  
-  reader.onloadend = () => {
-    var data = reader.result
-    var progress = JSON.parse(data);
+      ],
+      excludeAcceptAllOption: true,
+      multiple: false,
+    };
+    const [fileHandle] = await window.showOpenFilePicker(pickerOpts);
+    const progressFile = await fileHandle.getFile();
+    const reader = new FileReader();
+    reader.readAsText(progressFile)
+    
+    reader.onloadend = () => {
+      var data = reader.result
+      var progress = JSON.parse(data);
 
-    cw_stopSimulation();
+      cw_stopSimulation();
 
-    generationState.generation = progress.generation;
-    generationState.counter = Number(progress.genCounter);
+      generationState.generation = progress.generation;
+      generationState.counter = Number(progress.genCounter);
 
-    ghost = progress.ghost;
+      ghost = progress.ghost;
 
-    graphState.cw_topScores = progress.topScores;
+      graphState.cw_topScores = progress.topScores;
 
-    world_def.floorseed = progress.floorSeed;
-    document.getElementById("newseed").value = world_def.floorseed;
+      world_def.floorseed = progress.floorSeed;
+      document.getElementById("newseed").value = world_def.floorseed;
 
-    currentRunner = worldRun(world_def, generationState.generation, uiListeners);
-    Math.seedrandom();
-    cw_clearPopulationWorld();
-    resetCarUI();
-    setupCarUI();
-    cw_drawMiniMap();
-    cw_startSimulation();
-  };
+      currentRunner = worldRun(world_def, generationState.generation, uiListeners);
+      Math.seedrandom();
+      cw_clearPopulationWorld();
+      resetCarUI();
+      setupCarUI();
+      cw_drawMiniMap();
+      cw_startSimulation();
+    };
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 document.querySelector("#confirm-reset").addEventListener("click", function(){
