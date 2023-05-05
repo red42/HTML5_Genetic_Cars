@@ -12,7 +12,7 @@ function runDefs(world_def, defs, listeners) {
 
   var scene = setupScene(world_def);
   scene.world.Step(1 / world_def.box2dfps, 20, 20);
-  console.log("about to build cars");
+  // console.log("about to build cars");
   var cars = defs.map((def, i) => {
     return {
       index: i,

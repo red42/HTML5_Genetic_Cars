@@ -487,33 +487,71 @@ document.querySelector("#new-population").addEventListener("click", function(){
   resetCarUI();
 })
 
-function saveProgress() {
-  localStorage.cw_savedGeneration = JSON.stringify(generationState.generation);
-  localStorage.cw_genCounter = generationState.counter;
-  localStorage.cw_ghost = JSON.stringify(ghost);
-  localStorage.cw_topScores = JSON.stringify(graphState.cw_topScores);
-  localStorage.cw_floorSeed = world_def.floorseed;
+async function saveProgress() {
+  cw_stopSimulation();
+
+  progress = {
+    generation: generationState.generation,
+    genCounter: generationState.counter,
+    ghost: ghost,
+    topScores: graphState.cw_topScores,
+    floorSeed: world_def.floorseed
+  }
+
+  var progressBlob = new Blob([JSON.stringify(progress)], {
+    type: "application/json",
+  });
+
+  const newHandle = await window.showSaveFilePicker();
+  const writableStream = await newHandle.createWritable();
+  await writableStream.write(progressBlob);
+  await writableStream.close();
+
+  cw_startSimulation();
 }
 
-function restoreProgress() {
-  if (typeof localStorage.cw_savedGeneration == 'undefined' || localStorage.cw_savedGeneration == null) {
-    alert("No saved progress found");
-    return;
-  }
-  cw_stopSimulation();
-  generationState.generation = JSON.parse(localStorage.cw_savedGeneration);
-  generationState.counter = localStorage.cw_genCounter;
-  ghost = JSON.parse(localStorage.cw_ghost);
-  graphState.cw_topScores = JSON.parse(localStorage.cw_topScores);
-  world_def.floorseed = localStorage.cw_floorSeed;
-  document.getElementById("newseed").value = world_def.floorseed;
+async function restoreProgress() {
+  const pickerOpts = {
+    types: [
+      {
+        description: "JSON",
+        accept: {
+          "application/json": [".json"],
+        },
+      },
+    ],
+    excludeAcceptAllOption: true,
+    multiple: false,
+  };
+  const [fileHandle] = await window.showOpenFilePicker(pickerOpts);
+  const progressFile = await fileHandle.getFile();
+  const reader = new FileReader();
+  reader.readAsText(progressFile)
+  
+  reader.onloadend = () => {
+    var data = reader.result
+    var progress = JSON.parse(data);
 
-  currentRunner = worldRun(world_def, generationState.generation, uiListeners);
-  cw_drawMiniMap();
-  Math.seedrandom();
+    cw_stopSimulation();
 
-  resetCarUI();
-  cw_startSimulation();
+    generationState.generation = progress.generation;
+    generationState.counter = Number(progress.genCounter);
+
+    ghost = progress.ghost;
+
+    graphState.cw_topScores = progress.topScores;
+
+    world_def.floorseed = progress.floorSeed;
+    document.getElementById("newseed").value = world_def.floorseed;
+
+    currentRunner = worldRun(world_def, generationState.generation, uiListeners);
+    Math.seedrandom();
+    cw_clearPopulationWorld();
+    resetCarUI();
+    setupCarUI();
+    cw_drawMiniMap();
+    cw_startSimulation();
+  };
 }
 
 document.querySelector("#confirm-reset").addEventListener("click", function(){

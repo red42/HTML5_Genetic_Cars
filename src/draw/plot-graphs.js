@@ -11,7 +11,7 @@ module.exports = {
     var nextState = cw_storeGraphScores(
       lastState, scores, generationSize
     );
-    console.log(scores, nextState);
+    // console.log(scores, nextState);
     cw_clearGraphics(graphcanvas, graphctx, graphwidth, graphheight);
     cw_plotAverage(nextState, graphctx);
     cw_plotElite(nextState, graphctx);
@@ -33,7 +33,7 @@ module.exports = {
 
 
 function cw_storeGraphScores(lastState, cw_carScores, generationSize) {
-  console.log(cw_carScores);
+  // console.log(cw_carScores);
   return {
     cw_topScores: (lastState.cw_topScores || [])
     .concat([cw_carScores[0].score]),
@@ -46,7 +46,7 @@ function cw_storeGraphScores(lastState, cw_carScores, generationSize) {
     cw_graphTop: (lastState.cw_graphTop || []).concat([
       cw_carScores[0].score.v
     ]),
-    allResults: (lastState.allResults || []).concat(cw_carScores),
+    // allResults: (lastState.allResults || []).concat(cw_carScores),
   }
 }
 
