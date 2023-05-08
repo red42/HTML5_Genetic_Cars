@@ -490,15 +490,24 @@ document.querySelector("#new-population").addEventListener("click", function(){
 async function saveProgress() {
   cw_stopSimulation();
 
+  var savedGen = generationState.generation;
+  savedGen.forEach(car => {
+    var ancestry
+    car.ancestry = ancestry
+  });
+
   progress = {
-    generation: generationState.generation,
+    generation: savedGen,
     genCounter: generationState.counter,
     ghost: ghost,
     topScores: graphState.cw_topScores,
     floorSeed: world_def.floorseed
   }
 
-  var progressBlob = new Blob([JSON.stringify(progress)], {
+  var progressJson = JSON.stringify(progress);
+  console.log(progressJson);
+  
+  var progressBlob = new Blob([progressJson], {
     type: "application/json",
   });
 
